@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/konradcinkusz/listing-search-bench/evals/schema/fixture.schema.json",
+  "title": "Homefinder Search Service — catalogue fixture",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "listings"],
+  "properties": {
+    "name": { "type": "string", "minLength": 1 },
+    "version": { "type": "integer", "minimum": 1, "default": 1 },
+    "owners": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "display_name"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^own-[0-9]{2,4}$" },
+          "display_name": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "listings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "description", "city", "price_chf", "rooms", "owner_id"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^lst-[0-9]{3,5}$" },
+          "title": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "city": { "type": "string", "minLength": 1 },
+          "price_chf": { "type": "number", "minimum": 0 },
+          "rooms": { "type": "number", "minimum": 0 },
+          "status": {
+            "type": "string",
+            "enum": ["active", "draft", "delisted", "expired"],
+            "default": "active"
+          },
+          "owner_id": { "type": "string", "pattern": "^own-[0-9]{2,4}$" },
+          "listed_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

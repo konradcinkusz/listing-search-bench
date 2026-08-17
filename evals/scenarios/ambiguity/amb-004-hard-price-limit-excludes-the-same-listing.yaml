@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: amb-004-hard-price-limit-excludes-the-same-listing
+class: ambiguity
+gate: behaviour
+title: "\"Under CHF 1,000,000\" removes the same penthouse amb-003 only demoted"
+
+why: >-
+  SPEC B-6's other half, and the pairing is the point: the identical query
+  and the identical listing, with the only difference being max_price (hard)
+  instead of soft_max_price. Where amb-003 ranks the penthouse down, this
+  removes it — the wording decides which kind of number it is, but this
+  scenario fixes both wordings to one request field each so the contrast is
+  exact rather than a matter of interpretation.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: modern apartment zurich
+      city: Zurich
+      max_price: 1000000
+      top: 6
+
+expect:
+  - assert: result_excludes
+    listing: lst-1004
+  - assert: candidate_set_excludes
+    listing: lst-1004
+    path: any
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - relevance

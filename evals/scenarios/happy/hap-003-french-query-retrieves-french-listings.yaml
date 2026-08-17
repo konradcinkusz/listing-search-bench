@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: hap-003-french-query-retrieves-french-listings
+class: happy
+gate: behaviour
+title: A French-language query retrieves the French-language listings it means
+
+why: >-
+  Tokenisation is script-based, not vocabulary-based (SPEC B-7) — the corpus
+  is not English-only, and a query in the language a listing was written in
+  must retrieve it without any translation step.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: appartement geneve
+      top: 5
+
+expect:
+  - assert: result_includes
+    listing: lst-1008
+  - assert: result_includes
+    listing: lst-1009
+  - assert: result_rank
+    listing: lst-1008
+    value: '1'
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - relevance

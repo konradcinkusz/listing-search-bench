@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <PackageReference Include="YamlDotNet" />
+    <PackageReference Include="Elastic.Clients.Elasticsearch" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Homefinder.ServiceDefaults/Homefinder.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="The default fixture catalogue, linked rather than copied so the service and the evals read one file">
+    <Content Include="../../evals/fixtures/*.yaml" LinkBase="Fixtures/Data" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

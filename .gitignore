@@ -39,6 +39,9 @@ ScaffoldingReadMe.txt
 # dotenv environment variables file
 .env
 
+# Node tooling (npm run lint)
+node_modules/
+
 # Others
 ~$*
 *~

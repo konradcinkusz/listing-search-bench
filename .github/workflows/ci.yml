@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-docs:
+    name: Lint docs and eval corpus
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  build-test:
+    name: Build and test (unit, Layer 1, mutation pass, judge machinery)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore Homefinder.slnx
+
+      - name: Build
+        run: dotnet build Homefinder.slnx --no-restore --configuration Release
+
+      - name: Test — Homefinder.SearchService.Tests (unit + HTTP surface)
+        run: dotnet test --project tests/Homefinder.SearchService.Tests/Homefinder.SearchService.Tests.csproj --no-build --configuration Release --report-trx
+
+      - name: Test — Homefinder.Evals (Layer 1, mutation pass, judge machinery)
+        run: dotnet test --project evals/Homefinder.Evals/Homefinder.Evals.csproj --no-build --configuration Release --report-trx
+
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trx-results
+          path: "**/TestResults/*.trx"
+          if-no-files-found: warn
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

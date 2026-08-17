@@ -1,0 +1,12 @@
+# Non-secret configuration only. SearchIndex__Mode defaults to Fixture in code
+# (ADR-0002); it is named here explicitly so a reviewer of this manifest does not
+# have to already know that default to know what this deployment runs against.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homefinder-search-config
+  namespace: homefinder
+data:
+  ASPNETCORE_URLS: "http://+:8080"
+  SearchIndex__Mode: "Fixture"
+  SearchIndex__FixtureName: "zurich-catalogue"

@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: exc-005-high-score-never-buys-a-way-past-a-price-ceiling
+class: exclusion
+gate: constraint
+title: The single best lexical match in the corpus is still cut by a low price ceiling
+
+why: >-
+  SPEC C-2, stated the way the design note frames it — "a result outside the
+  hard filter never lands, no matter how high its semantic score". lst-1001
+  is the strongest lexical match for this query in the whole active corpus,
+  priced at roughly double the ceiling this request sets; it must be cut
+  regardless, and a cheaper, lower-scoring listing must take its place.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: modern apartment zurich
+      max_price: 500000
+      top: 5
+
+expect:
+  - assert: result_excludes
+    listing: lst-1001
+  - assert: candidate_set_excludes
+    listing: lst-1001
+    path: any
+  - assert: result_includes
+    listing: lst-1005
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - exclusion-honesty

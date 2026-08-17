@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Homefinder.AppHost/Homefinder.AppHost.csproj" />
+    <Project Path="src/Homefinder.ServiceDefaults/Homefinder.ServiceDefaults.csproj" />
+    <Project Path="src/Homefinder.SearchService/Homefinder.SearchService.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Homefinder.SearchService.Tests/Homefinder.SearchService.Tests.csproj" />
+  </Folder>
+  <Folder Name="/evals/">
+    <Project Path="evals/Homefinder.Evals/Homefinder.Evals.csproj" />
+  </Folder>
+</Solution>

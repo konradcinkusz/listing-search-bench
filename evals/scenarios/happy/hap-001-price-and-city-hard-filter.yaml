@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: hap-001-price-and-city-hard-filter
+class: happy
+gate: behaviour
+title: A city and a price ceiling, resolved before either retrieval path runs
+
+why: >-
+  The reference path. A relevant, affordable Zurich apartment should come back
+  first; a relevant but far-too-expensive Zurich apartment should not come
+  back at all. If this scenario breaks, nothing else is worth reading.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: modern apartment zurich
+      city: Zurich
+      max_price: 1000000
+      top: 5
+
+expect:
+  - assert: result_includes
+    listing: lst-1001
+  - assert: result_includes
+    listing: lst-1002
+  - assert: result_includes
+    listing: lst-1005
+  - assert: result_includes
+    listing: lst-1012
+  - assert: result_excludes
+    listing: lst-1004
+  - assert: candidate_set_excludes
+    listing: lst-1004
+    path: any
+  - assert: result_rank
+    listing: lst-1001
+    value: '1'
+  - assert: result_attribution
+    listing: lst-1001
+    value: both
+  - assert: outcome
+    value: completed
+  - assert: response_excludes_internal_fields
+
+rubrics:
+  - relevance
+  - attribution-clarity

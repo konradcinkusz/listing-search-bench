@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: deg-003-both-paths-time-out-explicit-empty-not-silent
+class: degradation
+gate: constraint
+title: Both retrieval paths timing out ends in an explicit degraded empty set
+
+why: >-
+  SPEC C-4 — every request ends with a result set or an explicit degraded
+  outcome, never a silent timeout with no event. This is the worst case:
+  nothing came back from either path, and the response must say so loudly
+  rather than reading, to a caller, exactly like "no matches".
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+  index_behaviour:
+    query:
+      outcome: timeout
+    vector_query:
+      outcome: timeout
+
+steps:
+  - action: search
+    request:
+      query: modern apartment zurich
+      city: Zurich
+      top: 5
+
+expect:
+  - assert: outcome
+    value: degraded
+  - assert: result_count
+    value: '0'
+  - assert: event_emitted
+    event: degradation.noted
+    times: 2
+
+rubrics:
+  - degradation-honesty
