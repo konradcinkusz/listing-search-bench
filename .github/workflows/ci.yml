@@ -57,6 +57,12 @@ jobs:
   secret-scan:
     name: Secret scan
     runs-on: ubuntu-latest
+    # gitleaks-action lists the PR's commits via the API on a pull_request event
+    # (GET /pulls/{n}/commits) and 403s without this — the repo's default
+    # GITHUB_TOKEN permissions don't include pull-requests:read on their own.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:
