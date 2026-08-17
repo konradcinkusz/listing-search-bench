@@ -34,4 +34,23 @@ public enum IngestionOutcome
     Applied,
     DuplicateIgnored,
     Failed,
+
+    /// <summary>
+    /// A well-formed <c>price_changed</c> or <c>delisted</c> event named a listing this
+    /// consumer has never seen a <c>published</c> event for — buffered, not failed,
+    /// because a transport that does not guarantee ordering can legitimately deliver
+    /// these out of sequence. Replayed automatically once the matching
+    /// <c>published</c> event arrives (SPEC §7.2, B-12).
+    /// </summary>
+    Deferred,
+
+    /// <summary>
+    /// A deferred event whose listing's pending buffer filled up before a
+    /// <c>published</c> event ever arrived for it — given up on and handed to
+    /// <see cref="IDeadLetterSink"/> rather than buffered forever.
+    /// </summary>
+    DeadLettered,
 }
+
+/// <summary>One event <see cref="IDeadLetterSink"/> received because it could not be resolved.</summary>
+public sealed record DeadLetteredEvent(string EventId, string ListingId, string Reason, DateTimeOffset OccurredAt);

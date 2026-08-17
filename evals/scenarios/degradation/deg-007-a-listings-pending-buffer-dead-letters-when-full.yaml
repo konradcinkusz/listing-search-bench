@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: deg-007-a-listings-pending-buffer-dead-letters-when-full
+class: degradation
+gate: behaviour
+title: A pending buffer that fills up with no listing.published dead-letters, not loops forever
+
+why: >-
+  SPEC §7.2, B-12 — deferring an out-of-order event is only honest if it does
+  not become an unbounded promise. A listing whose published event never
+  arrives must eventually be given up on rather than buffered forever; this
+  proves the fourth out-of-order event for one never-published listing is
+  dead-lettered, and that none of the four was ever silently applied.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: ingest
+    event:
+      event_id: evt-deg7-001
+      type: price_changed
+      listing_id: lst-1403
+      price_chf: 410000
+  - action: ingest
+    event:
+      event_id: evt-deg7-002
+      type: delisted
+      listing_id: lst-1403
+  - action: ingest
+    event:
+      event_id: evt-deg7-003
+      type: price_changed
+      listing_id: lst-1403
+      price_chf: 405000
+  - action: ingest
+    event:
+      event_id: evt-deg7-004
+      type: delisted
+      listing_id: lst-1403
+
+expect:
+  - assert: ingestion_outcome
+    step: 1
+    value: deferred
+  - assert: ingestion_outcome
+    step: 2
+    value: deferred
+  - assert: ingestion_outcome
+    step: 3
+    value: deferred
+  - assert: ingestion_outcome
+    step: 4
+    value: dead_lettered
+  - assert: event_emitted
+    event: ingestion.dead_lettered
+    times: 1
+  - assert: event_not_emitted
+    event: ingestion.applied
+
+rubrics:
+  - degradation-honesty

@@ -15,7 +15,7 @@ decisions this repository's design note calls out specifically.
 | [0004](0004-pin-the-embedding-and-the-judge-model-separately.md) | Pin the embedding and the judge model separately, never fall back silently | Accepted | 2026-08-17 |
 | [0005](0005-elasticsearch-and-vector-store-sdk-behind-one-method-seam.md) | The Elasticsearch and vector-store SDK lives behind a five-method seam | Accepted | 2026-08-17 |
 | [0006](0006-event-idempotency-at-the-consumer-boundary.md) | Event idempotency at the consumer boundary | Accepted | 2026-08-17 |
-| [0007](0007-render-the-overview-to-pdf-on-demand.md) | Render an overview document to PDF on demand, never committed | Proposed | 2026-08-17 |
+| [0007](0007-render-the-overview-to-pdf-on-demand.md) | Render an overview document to PDF on demand, never committed | Accepted | 2026-08-17 |
 
 ## What belongs here versus `DEVIATIONS.md` versus nowhere
 

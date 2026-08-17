@@ -20,6 +20,8 @@ public static class SearchDiagnostics
         public const string IngestionApplied = "ingestion.applied";
         public const string IngestionDuplicateIgnored = "ingestion.duplicate_ignored";
         public const string IngestionFailed = "ingestion.failed";
+        public const string IngestionDeferred = "ingestion.deferred";
+        public const string IngestionDeadLettered = "ingestion.dead_lettered";
         public const string RankingManipulationIgnored = "ranking.manipulation_ignored";
         public const string DegradationNoted = "degradation.noted";
         public const string Attempt = "attempt";
@@ -51,6 +53,7 @@ public static class SearchDiagnostics
         public const string IngestionEventId = "ingestion.event_id";
         public const string IngestionEventType = "ingestion.event_type";
         public const string IngestionListingId = "ingestion.listing_id";
+        public const string IngestionDeadLetterReason = "ingestion.dead_letter_reason";
 
         public const string ManipulationListingId = "ranking.manipulation.listing_id";
         public const string ManipulationSignal = "ranking.manipulation.signal";

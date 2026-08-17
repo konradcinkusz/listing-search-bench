@@ -12,6 +12,17 @@ namespace Homefinder.SearchService.Endpoints;
 /// </summary>
 public static class SearchEndpoints
 {
+    /// <summary>
+    /// The largest page size a caller may request. This is a request-shape bound, not
+    /// a ranking behaviour — it does not change what SPEC.md describes, only how much
+    /// of it one call may ask for at once, so it belongs here rather than in the
+    /// pipeline. <see cref="SearchOptions.CandidatePoolSize"/> already caps how many
+    /// candidates ever exist to return; this caps the request, independently, so that
+    /// guarantee is never the only thing standing between a caller and an unbounded
+    /// response.
+    /// </summary>
+    public const int MaxTop = 50;
+
     public static WebApplication MapSearchEndpoints(this WebApplication app)
     {
         app.MapPost("/search", async (SearchRequestBody body, ISearchOrchestrator orchestrator, CancellationToken cancellationToken) =>
@@ -25,12 +36,13 @@ public static class SearchEndpoints
                 MaxRooms: body.MaxRooms,
                 SoftMaxPrice: body.SoftMaxPrice,
                 Sort: body.Sort ?? SortOrder.Relevance,
-                Top: body.Top ?? 10);
+                Top: Math.Clamp(body.Top ?? 10, 1, MaxTop));
 
             var response = await orchestrator.RunAsync(request, cancellationToken).ConfigureAwait(false);
 
             return Results.Ok(response);
-        });
+        })
+        .RequireRateLimiting(SearchRateLimitOptions.PolicyName);
 
         return app;
     }

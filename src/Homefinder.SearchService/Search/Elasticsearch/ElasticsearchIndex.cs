@@ -19,8 +19,9 @@ public sealed class ElasticsearchIndex : ISearchIndex
 
     private readonly ElasticsearchClient _client;
     private readonly string _indexName;
+    private readonly IEmbeddingProvider _embeddingProvider;
 
-    public ElasticsearchIndex(SearchIndexOptions options)
+    public ElasticsearchIndex(SearchIndexOptions options, IEmbeddingProvider? embeddingProvider = null)
     {
         ArgumentNullException.ThrowIfNull(options);
 
@@ -41,6 +42,7 @@ public sealed class ElasticsearchIndex : ISearchIndex
 
         _client = new ElasticsearchClient(settings);
         _indexName = options.ElasticsearchIndexName;
+        _embeddingProvider = embeddingProvider ?? new DeterministicEmbeddingProvider();
     }
 
     public async ValueTask<IndexQueryResult> QueryAsync(
@@ -82,10 +84,20 @@ public sealed class ElasticsearchIndex : ISearchIndex
 
     public async ValueTask IndexAsync(ListingDocument document, CancellationToken cancellationToken = default)
     {
-        var embedding = DeterministicTextEmbedding
-            .Compute($"{document.Title} {document.Description}")
-            .Select(v => (float)v)
-            .ToArray();
+        var outcome = await _embeddingProvider
+            .EmbedAsync($"{document.Title} {document.Description}", cancellationToken)
+            .ConfigureAwait(false);
+
+        if (outcome.Degraded)
+        {
+            throw new InvalidOperationException(
+                $"Embedding provider degraded ({outcome.DegradationKind ?? "unknown"}) while indexing "
+                + $"listing '{document.ListingId}'. IngestionConsumer treats this the same as any other "
+                + "failed apply — the event_id reservation is released so a corrected replay is not "
+                + "mistaken for a duplicate (SPEC §7.2).");
+        }
+
+        var embedding = outcome.Vector!.Select(v => (float)v).ToArray();
 
         var doc = new ElasticsearchListingDocument
         {
