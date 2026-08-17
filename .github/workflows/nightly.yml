@@ -1,0 +1,56 @@
+name: Nightly — Layer 2
+
+# Runs the Layer 2 smoke subset against a live judge, if one is configured — the
+# keyed run AI-EVALS.md §5 requires to keep a judge honest, since a judge job that
+# skips on every PR *and* every nightly is "documentation that lies"
+# (TESTING-STRATEGY.md §9). Today, LLM_API_KEY is not set on this repository's
+# `evals` environment (docs/DEVIATIONS.md D-1), so this reports NOT RUN rather
+# than silently succeeding.
+
+on:
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  layer2:
+    name: Layer 2 — rubric judge (smoke subset)
+    runs-on: ubuntu-latest
+    environment: evals
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Check for a judge credential
+        id: check
+        run: |
+          if [ -z "${LLM_API_KEY:-}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+
+      - name: Report NOT RUN — no credential configured
+        if: steps.check.outputs.configured == 'false'
+        run: |
+          echo "::warning::LLM_API_KEY is not set on the 'evals' environment. Layer 2 reports skipped:no-credential — see docs/DEVIATIONS.md D-1." \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Restore and build
+        if: steps.check.outputs.configured == 'true'
+        run: |
+          dotnet restore Homefinder.slnx
+          dotnet build Homefinder.slnx --no-restore --configuration Release
+
+      - name: Run Layer 2 (smoke subset)
+        if: steps.check.outputs.configured == 'true'
+        run: dotnet test --project evals/Homefinder.Evals/Homefinder.Evals.csproj --no-build --configuration Release --filter "FullyQualifiedName~Layer2Tests"
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_JUDGE_MODEL: ${{ vars.LLM_JUDGE_MODEL }}
+          LLM_ENDPOINT: ${{ vars.LLM_ENDPOINT }}

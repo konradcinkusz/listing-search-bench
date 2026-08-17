@@ -1,0 +1,14 @@
+{
+  "config": {
+    "default": true,
+    // Long lines are how this repository's prose reads — wrapping to 80 columns
+    // would fight every paragraph rather than catch a real problem.
+    "MD013": false,
+    // Inline HTML is used deliberately for the "back to top" anchors and badges.
+    "MD033": false,
+    // A repository named in kebab-case starts every doc's H1 with it.
+    "MD041": false
+  },
+  "globs": ["**/*.md"],
+  "ignores": ["node_modules/**"]
+}

@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: exc-001-delisted-never-appears-despite-top-lexical-score
+class: exclusion
+gate: constraint
+title: A delisted near-duplicate outscores the active listing and still never appears
+
+why: >-
+  SPEC C-1. lst-1101 is a delisted near-duplicate of lst-1001, written to
+  score HIGHER on lexical overlap than the active listing it duplicates —
+  the worst case a hard status filter can face. The two-assertion rule
+  applies: absent from the response, and never a candidate on either
+  retrieval path, not just filtered out on the way to the reply.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: modern apartment zurich
+      city: Zurich
+      top: 3
+
+expect:
+  - assert: result_excludes
+    listing: lst-1101
+  - assert: candidate_set_excludes
+    listing: lst-1101
+    path: lexical
+  - assert: candidate_set_excludes
+    listing: lst-1101
+    path: vector
+  - assert: result_includes
+    listing: lst-1001
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - exclusion-honesty

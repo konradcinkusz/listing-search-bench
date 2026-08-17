@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: hap-006-published-listing-is-searchable
+class: happy
+gate: behaviour
+title: A listing.published event makes a brand-new listing searchable
+
+why: >-
+  The whole point of the ingestion pipeline: nothing is searchable until an
+  event says it exists, and once one has, it is. This is the event-driven
+  path end to end, not just the query pipeline in isolation.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: ingest
+    event:
+      event_id: evt-hap6-001
+      type: published
+      listing_id: lst-1401
+      title: Sunny 2-room apartment, Lucerne old town
+      description: >-
+        A sunny, quiet 2-room apartment in Lucerne's old town, a short walk
+        from the lake. Freshly painted, well insulated.
+      city: Lucerne
+      price_chf: 530000
+      rooms: 2
+      owner_id: own-002
+  - action: search
+    request:
+      query: sunny apartment lucerne
+      city: Lucerne
+      top: 5
+
+expect:
+  - assert: ingestion_outcome
+    step: 1
+    value: applied
+  - assert: event_emitted
+    event: ingestion.applied
+    times: 1
+  - assert: result_includes
+    step: 2
+    listing: lst-1401
+  - assert: outcome
+    step: 2
+    value: completed
+
+rubrics:
+  - relevance

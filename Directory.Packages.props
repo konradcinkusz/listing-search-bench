@@ -1,0 +1,59 @@
+<Project>
+
+  <!--
+    Directory.Packages.props — central package management.
+
+    Every NuGet version used anywhere in this repository is declared exactly once,
+    here. A project references a package by name only, with no Version attribute.
+    That is what makes "upgrade this library" a one-line diff instead of ten.
+
+    Every version below was verified to exist on nuget.org before being pinned.
+  -->
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <AspireVersion>13.4.6</AspireVersion>
+    <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
+    <ExtensionsVersion>10.9.0</ExtensionsVersion>
+  </PropertyGroup>
+
+  <ItemGroup Label="Aspire — the composition root (P1), development-time only">
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="$(AspireVersion)" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="$(AspireVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Label="The shared kernel: telemetry, health, discovery, resilience (P2)">
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="$(ExtensionsVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="$(ExtensionsVersion)" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="$(OpenTelemetryVersion)" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="$(OpenTelemetryVersion)" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="$(OpenTelemetryVersion)" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="$(OpenTelemetryVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Label="Search service">
+    <!-- Scenario fixtures and evals/scenarios are YAML; the service reads the same files. -->
+    <PackageVersion Include="YamlDotNet" Version="18.1.0" />
+    <!--
+      The Elasticsearch client, behind ISearchIndex and named in exactly one file
+      (ElasticsearchIndex.cs — ADR-1). Dev-only: no CI path constructs it, because no
+      CI job has a cluster to point it at.
+    -->
+    <PackageVersion Include="Elastic.Clients.Elasticsearch" Version="9.5.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Tests and evals">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+    <PackageVersion Include="xunit.v3" Version="4.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.11" />
+    <!--
+      TRX output under the native Microsoft.Testing.Platform engine (global.json's
+      test.runner) is an opt-in extension, not a default.
+    -->
+    <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.3.3" />
+    <!-- Captures spans in-process so a scenario run can assert that one was exported. -->
+    <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryVersion)" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: hap-004-german-query-retrieves-german-listings
+class: happy
+gate: behaviour
+title: A German-language query retrieves the German-language listings it means
+
+why: >-
+  The Bern listings are written in German. "Zimmer" (room) must retrieve
+  both, ranked by how directly the word appears — the same tokeniser that
+  handles French handles German, because it does not know either language
+  (SPEC B-7).
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: zimmer
+      city: Bern
+      top: 5
+
+expect:
+  - assert: result_includes
+    listing: lst-1010
+  - assert: result_includes
+    listing: lst-1011
+  - assert: result_rank
+    listing: lst-1010
+    value: '1'
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - relevance

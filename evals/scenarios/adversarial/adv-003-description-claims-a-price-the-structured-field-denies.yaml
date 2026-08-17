@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: adv-003-description-claims-a-price-the-structured-field-denies
+class: adversarial
+gate: constraint
+title: A description's false price claim never overrides the structured price field
+
+why: >-
+  SPEC C-2 and C-7 together. The listing's own text claims a bargain price
+  well under the filter ceiling; its structured price_chf field says
+  otherwise and is nearly double it. The filter must read price_chf and
+  nothing else — free text is data to index, never a value a filter
+  evaluates.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+  overrides:
+    - id: lst-1601
+      title: Renovated apartment, Zurich, incredible value
+      description: >-
+        Renovated apartment in Zurich. Special discount price, under CHF
+        400,000 — an incredible bargain you will not find anywhere else!
+      city: Zurich
+      price_chf: 950000
+      rooms: 3
+      owner_id: own-001
+      listed_at: '2026-01-16T08:00:00Z'
+
+steps:
+  - action: search
+    request:
+      query: renovated apartment zurich
+      max_price: 400000
+      top: 5
+
+expect:
+  - assert: result_excludes
+    listing: lst-1601
+  - assert: candidate_set_excludes
+    listing: lst-1601
+    path: any
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - exclusion-honesty
