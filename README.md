@@ -2,6 +2,7 @@
 
 [![License](https://flat.badgen.net/static/License/MIT?icon=github&color=black&scale=1.01)](LICENSE "License")
 [![Maintained](https://flat.badgen.net/static/Maintained/yes?icon=github&color=black&scale=1.01)](https://github.com/konradcinkusz/listing-search-bench/commits/main "Maintained")
+[![Docs](https://flat.badgen.net/static/Docs/architecture%20%26%20eval%20bench?icon=github&color=black&scale=1.01)](https://konradcinkusz.github.io/listing-search-bench/ "Docs")
 
 **A spec-first evaluation bench for a hybrid search and ranking service.** A
 behaviour contract written before the pipeline existed, 26 scenarios stored as
