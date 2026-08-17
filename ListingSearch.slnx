@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ListingSearch.AppHost/ListingSearch.AppHost.csproj" />
+    <Project Path="src/ListingSearch.ServiceDefaults/ListingSearch.ServiceDefaults.csproj" />
+    <Project Path="src/ListingSearch.Service/ListingSearch.Service.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ListingSearch.Service.Tests/ListingSearch.Service.Tests.csproj" />
+  </Folder>
+  <Folder Name="/evals/">
+    <Project Path="evals/ListingSearch.Evals/ListingSearch.Evals.csproj" />
+  </Folder>
+</Solution>

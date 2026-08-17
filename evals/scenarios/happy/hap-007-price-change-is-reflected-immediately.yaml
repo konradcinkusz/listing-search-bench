@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: hap-007-price-change-is-reflected-immediately
+class: happy
+gate: behaviour
+title: A listing.price_changed event is reflected in the very next search
+
+why: >-
+  The penthouse starts well above a 1,000,000 CHF ceiling. A price drop
+  event must be applied before the next query is answered, or a search
+  service is reporting a catalogue that no longer exists.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: penthouse
+      max_price: 1000000
+      top: 5
+  - action: ingest
+    event:
+      event_id: evt-hap7-001
+      type: price_changed
+      listing_id: lst-1004
+      price_chf: 900000
+  - action: search
+    request:
+      query: penthouse
+      max_price: 1000000
+      top: 5
+
+expect:
+  - assert: result_excludes
+    step: 1
+    listing: lst-1004
+  - assert: ingestion_outcome
+    step: 2
+    value: applied
+  - assert: result_includes
+    step: 3
+    listing: lst-1004
+  - assert: outcome
+    step: 3
+    value: completed
+
+rubrics:
+  - relevance

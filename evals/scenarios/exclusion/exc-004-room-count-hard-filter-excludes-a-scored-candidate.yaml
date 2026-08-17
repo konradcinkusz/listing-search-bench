@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: exc-004-room-count-hard-filter-excludes-a-scored-candidate
+class: exclusion
+gate: constraint
+title: A minimum room count removes a listing that otherwise matched cleanly
+
+why: >-
+  SPEC C-2 — hard filters are not limited to price and city. A 3-room
+  listing that matches the query text on its own merits must still be
+  excluded once the caller asks for 4 rooms or more; boosting never widens
+  a filter's scope.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: zimmer
+      city: Bern
+      min_rooms: 4
+      top: 5
+
+expect:
+  - assert: result_excludes
+    listing: lst-1011
+  - assert: candidate_set_excludes
+    listing: lst-1011
+    path: any
+  - assert: result_includes
+    listing: lst-1010
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - exclusion-honesty

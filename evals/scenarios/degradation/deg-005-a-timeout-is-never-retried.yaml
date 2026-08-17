@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: deg-005-a-timeout-is-never-retried
+class: degradation
+gate: constraint
+title: A timeout gets exactly one attempt — never a second, unlike shard_unavailable
+
+why: >-
+  SPEC §7.1 — an indeterminate failure (a timeout) is not retried, ever,
+  where a definite one (shard_unavailable) may be, up to the attempt cap.
+  Collapsing that distinction is exactly the defect deg-001 and this
+  scenario together exist to catch: deg-001 proves a retryable fault does
+  retry, this proves an unretryable one does not.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+  index_behaviour:
+    query:
+      outcome: timeout
+
+steps:
+  - action: search
+    request:
+      query: modern apartment zurich
+      city: Zurich
+      top: 5
+
+expect:
+  - assert: outcome
+    value: degraded
+  - assert: call_attempts
+    operation: query
+    max_attempts: 1
+  - assert: event_emitted
+    event: degradation.noted
+    at_least: 1
+
+rubrics:
+  - degradation-honesty

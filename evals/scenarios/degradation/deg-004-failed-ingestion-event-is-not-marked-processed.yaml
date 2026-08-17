@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: deg-004-failed-ingestion-event-is-not-marked-processed
+class: degradation
+gate: constraint
+title: A malformed event fails without consuming its event_id, so a fix can replay it
+
+why: >-
+  SPEC §7.2 — the one place idempotency and failure handling interact. A
+  listing.published event missing its price is rejected; a corrected replay
+  under the SAME event_id must be free to apply, which is only true if the
+  failed attempt never reserved that id permanently.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: ingest
+    event:
+      event_id: evt-deg4-001
+      type: published
+      listing_id: lst-1701
+      title: Compact apartment, Zurich Wipkingen
+      description: A compact, well-priced apartment in Wipkingen.
+      city: Zurich
+      rooms: 2
+      owner_id: own-003
+      # price_chf deliberately omitted — a malformed event.
+  - action: ingest
+    event:
+      event_id: evt-deg4-001
+      type: published
+      listing_id: lst-1701
+      title: Compact apartment, Zurich Wipkingen
+      description: A compact, well-priced apartment in Wipkingen.
+      city: Zurich
+      price_chf: 610000
+      rooms: 2
+      owner_id: own-003
+
+expect:
+  - assert: ingestion_outcome
+    step: 1
+    value: failed
+  - assert: event_emitted
+    event: ingestion.failed
+    times: 1
+  - assert: ingestion_outcome
+    step: 2
+    value: applied
+  - assert: event_not_emitted
+    event: ingestion.duplicate_ignored
+
+rubrics:
+  - degradation-honesty

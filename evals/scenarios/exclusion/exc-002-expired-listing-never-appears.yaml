@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: exc-002-expired-listing-never-appears
+class: exclusion
+gate: constraint
+title: An expired listing is the second-best match and still never appears
+
+why: >-
+  SPEC C-1's other lifecycle state. lst-1102 is an expired penthouse whose
+  text scores second only to the active penthouse it once duplicated —
+  chosen specifically so a passing scenario cannot be explained by the
+  expired listing simply losing on relevance.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: lake view penthouse
+      city: Zurich
+      top: 3
+
+expect:
+  - assert: result_excludes
+    listing: lst-1102
+  - assert: candidate_set_excludes
+    listing: lst-1102
+    path: lexical
+  - assert: candidate_set_excludes
+    listing: lst-1102
+    path: vector
+  - assert: result_includes
+    listing: lst-1004
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - exclusion-honesty

@@ -1,0 +1,106 @@
+# yaml-language-server: $schema=../schema/judge.schema.json
+#
+# The rubric contract — SPEC.md §5, reproduced here as structured data so
+# JudgeConfiguration can load it without a second, drifting copy of the anchors.
+# A change to this file is a suite version bump (docs/SPEC.md §8.4's sibling rule
+# for rubrics) and forces re-calibration, per docs/CALIBRATION.md.
+version: 1.0.0
+spec_section: '5'
+
+calibration:
+  minimum_labels: 40
+  minimum_scenarios: 8
+  minimum_kappa: 0.6
+
+rubrics:
+  relevance:
+    scale: 3
+    threshold: 2.5
+    applies_to: any
+    summary: >-
+      Whether the top result is the best match in the allowed candidate set for
+      the query's intent, and the rest of the top-5 is defensible.
+    anchors:
+      3: >-
+        The top result is the best match in the allowed candidate set for the
+        query's intent; the rest of the top-5 is defensible in the order shown.
+      2: >-
+        The top-5 is all reasonable matches, but the best match is not first.
+      1: >-
+        The top-5 contains at least one listing with no plausible connection to
+        the query.
+      0: >-
+        The top result contradicts an explicit hard filter's intent even though
+        it technically satisfies it.
+
+  attribution-clarity:
+    scale: 3
+    threshold: 2.5
+    applies_to: any
+    summary: >-
+      Whether each top-5 result's retrieval source and dominant contributing
+      signal are recoverable from the trace.
+    anchors:
+      3: >-
+        For every top-5 result, the source (lexical / vector / both) and the
+        dominant contributing signal are recoverable from the trace without
+        guessing.
+      2: >-
+        Source is recoverable for every result, but the dominant signal
+        requires inference.
+      1: >-
+        Source is missing or ambiguous for at least one top-5 result.
+      0: >-
+        A result's source cannot be determined from the trace at all.
+
+  exclusion-honesty:
+    scale: 3
+    threshold: 2.5
+    applies_to: exclusion
+    summary: >-
+      Whether a listing a naive text match would have surfaced is verifiably
+      absent, and absent for a structural reason rather than a coincidental
+      low score.
+    anchors:
+      3: >-
+        Every excluded listing that a naive text match would have surfaced is
+        verifiably absent from both the response and the candidate trace.
+      2: >-
+        Absent from the response, but the candidate trace shows the exclusion
+        happened later than it should have.
+      1: >-
+        Absent from the response only because of a coincidental low score, not
+        a structural exclusion.
+      0: >-
+        Present.
+
+  degradation-honesty:
+    scale: 3
+    threshold: 2.5
+    applies_to: degradation
+    summary: >-
+      Whether a degraded response names which stage failed and what is
+      therefore missing, rather than presenting a partial result as complete.
+    anchors:
+      3: >-
+        Names which stage failed, states exactly which candidates are
+        therefore missing, and returns the rest without pretending the ranking
+        is complete.
+      2: >-
+        Says the outcome is degraded and which stage failed, but not what is
+        therefore missing.
+      1: >-
+        Vague — degraded outcome with no stage named.
+      0: >-
+        Presents a partial result set as a complete one.
+
+# The PR-gated smoke subset (docs/SPEC.md §8) — explicit, not derived from the
+# corpus, so adding a scenario to evals/scenarios/ never silently changes what
+# runs on every pull request versus only nightly.
+smoke:
+  - id: hap-001-price-and-city-hard-filter
+    why: The reference path. Exercises relevance and attribution-clarity together.
+  - id: exc-001-delisted-never-appears-despite-top-lexical-score
+    why: The sharpest exclusion-honesty case in the corpus.
+  - id: deg-003-both-paths-time-out-explicit-empty-not-silent
+    why: The worst-case degradation-honesty case — nothing came back at all.

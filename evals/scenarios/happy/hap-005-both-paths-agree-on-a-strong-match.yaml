@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: hap-005-both-paths-agree-on-a-strong-match
+class: happy
+gate: behaviour
+title: A listing that is a strong match on both paths is attributed to both
+
+why: >-
+  SPEC B-4/C-5 — every result carries which retrieval path(s) produced it.
+  The family house is the one listing whose text is close enough to the
+  query on both lexical overlap and embedding similarity that it should be
+  attributed to both paths, not silently to just one.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: family house garden
+      top: 5
+
+expect:
+  - assert: result_includes
+    listing: lst-1003
+  - assert: result_rank
+    listing: lst-1003
+    value: '1'
+  - assert: result_attribution
+    listing: lst-1003
+    value: both
+  - assert: candidate_set_includes
+    listing: lst-1003
+    path: lexical
+  - assert: candidate_set_includes
+    listing: lst-1003
+    path: vector
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - attribution-clarity

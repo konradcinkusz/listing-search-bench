@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: amb-003-soft-price-preference-does-not-exclude
+class: ambiguity
+gate: behaviour
+title: "\"Around CHF 1,000,000\" ranks the penthouse lower — it does not remove it"
+
+why: >-
+  SPEC B-6 — a soft price signal is a ranking preference, not a filter. The
+  lake-view penthouse is priced well above the stated preference; it must
+  still appear, only ranked behind cheaper, otherwise-weaker matches it would
+  have beaten on relevance alone.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: modern apartment zurich
+      city: Zurich
+      soft_max_price: 1000000
+      top: 6
+
+expect:
+  - assert: result_includes
+    listing: lst-1004
+  - assert: result_ranked_below
+    listing: lst-1004
+    than: lst-1005
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - relevance

@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: deg-001-lexical-shard-unavailable-degrades-to-vector-only
+class: degradation
+gate: behaviour
+title: Lexical shards down still returns a vector-only result set, explicitly degraded
+
+why: >-
+  SPEC §7 — partial output with a note beats an all-or-nothing failure. With
+  the lexical path unavailable, the vector path alone must still surface
+  results, every one of them attributed to vector only, and the outcome
+  must say degraded rather than pretending nothing happened.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+  index_behaviour:
+    query:
+      outcome: shard_unavailable
+
+steps:
+  - action: search
+    request:
+      query: modern apartment zurich
+      city: Zurich
+      top: 5
+
+expect:
+  - assert: outcome
+    value: degraded
+  - assert: event_emitted
+    event: degradation.noted
+    at_least: 1
+  - assert: result_includes
+    listing: lst-1001
+  - assert: result_attribution
+    listing: lst-1001
+    value: vector
+  - assert: candidate_set_excludes
+    listing: lst-1001
+    path: lexical
+  - assert: call_attempts
+    operation: query
+    max_attempts: 2
+
+rubrics:
+  - degradation-honesty

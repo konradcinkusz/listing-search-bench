@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: amb-005-disambiguating-vocabulary-is-respected
+class: ambiguity
+gate: behaviour
+title: "\"Maison\" versus \"appartement\" correctly picks out the house, not the flat"
+
+why: >-
+  "Geneve" alone is ambiguous between the two Geneva listings; "maison"
+  (house) is the French word that disambiguates which property type the
+  query means, and it is not an English word the tokeniser could match by
+  accident. Getting this right is evidence the ranking is reading the query
+  language rather than falling back to whatever scores highest regardless.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: maison geneve
+      top: 5
+
+expect:
+  - assert: result_includes
+    listing: lst-1009
+  - assert: result_includes
+    listing: lst-1008
+  - assert: result_rank
+    listing: lst-1009
+    value: '1'
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - relevance

@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: exc-003-draft-listing-never-visible
+class: exclusion
+gate: constraint
+title: A draft listing is a strong match and still never visible to a search caller
+
+why: >-
+  SPEC O-2 — a draft is not yet published, and this POC has no owner-scoped
+  preview to reveal it through. It must be structurally invisible to every
+  caller this service has, not merely absent because it under-matched.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: modern apartment zurich
+      city: Zurich
+      top: 5
+
+expect:
+  - assert: result_excludes
+    listing: lst-1103
+  - assert: candidate_set_excludes
+    listing: lst-1103
+    path: any
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - exclusion-honesty
