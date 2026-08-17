@@ -1,7 +1,7 @@
 # The ListingSearch service — behaviour specification
 
 - **Service slug**: `listing-search-service`
-- **Spec version**: 1.0.0
+- **Spec version**: 1.1.0
 - **Status**: Accepted — this is the contract. Code is measured against it, not the other way round.
 - **Date**: 2026-08-17
 
@@ -122,6 +122,8 @@ the **contract**, not diagnostics:
 | `constraint.violated` | `ResponseAssemblerStage` found a candidate that would have exposed an internal identifier, a raw score or an embedding vector, and stripped it independently of what the ranking stage decided — the response-boundary half of C-3 |
 | `ingestion.applied` | An ingestion event was applied to the index for the first time |
 | `ingestion.duplicate_ignored` | An ingestion event whose `event_id` had already been applied was received again and ignored |
+| `ingestion.deferred` | A well-formed `price_changed` or `delisted` event named a listing not yet seen; buffered for replay once its `published` event arrives (§7.2, B-12) |
+| `ingestion.dead_lettered` | A deferred event's listing never received a `published` event before its pending buffer filled up; given up on (§7.2, B-12) |
 | `ranking.manipulation_ignored` | Instruction-shaped or ranking-manipulative text was found in a listing's own free-text fields and was **not** allowed to influence its score |
 | `degradation.noted` | A stage produced partial or no data, and the response says so |
 
@@ -198,6 +200,7 @@ Graded by Layer 1 where the property is structural, and additionally by Layer
 | **B-9** | Applies an ingestion event to the index exactly once per `event_id`, replays included | `hap-006`, `deg-004` |
 | **B-10** | Scans listing free text for instruction-shaped or ranking-manipulative content and reports it via `ranking.manipulation_ignored`, without letting it change the score | `adv-001`, `adv-002` |
 | **B-11** | Honours an explicit sort order (price ascending/descending) as an alternative to relevance ranking, applied after filtering | `hap-002` |
+| **B-12** | Defers a `price_changed` or `delisted` event that names a listing not yet seen, and replays it once the matching `published` event arrives, rather than treating reordering as malformed; gives up and dead-letters it if no `published` event arrives before its listing's pending buffer fills | `deg-006`, `deg-007` |
 
 ## 4. Hard constraints
 
@@ -348,6 +351,29 @@ a duplicate. This is the one place `event_id` idempotency and failure
 handling interact, and it is stated because getting it backwards
 (marking a failed event "processed") would silently and permanently drop a
 listing update.
+
+**Reordering is not malformation (B-12).** A `price_changed` or `delisted`
+event that is otherwise well-formed but names a listing this consumer has
+never seen a `published` event for is **deferred**, not failed: buffered per
+listing, and replayed automatically, in the order received, once that
+listing's `published` event arrives. This exists because a real transport
+does not guarantee delivery order across partitions the way this repository's
+own scenario replay always has (D-3) — a `price_changed` arriving one message
+ahead of the `published` event it patches is a legitimate delivery, not a bug
+to reject.
+
+A deferred event's `event_id` stays reserved for exactly the reason a failed
+one is released: a replay of the *same* deferred event while it is still
+waiting is a duplicate (`ingestion.duplicate_ignored`), not a second
+deferral. The pending buffer per listing is bounded — a real queue does not
+retain a message forever either — and an event that arrives after the buffer
+for its listing is already full is **dead-lettered**: its `event_id` is
+released (the same reasoning as a failed event, so a corrected replay is not
+locked out) and it is handed to a dead-letter sink rather than discarded
+silently. A malformed event (missing or invalid required fields) still fails
+immediately regardless of whether its listing exists yet — deferring a
+`price_changed` with no price would only delay a failure that the eventual
+`published` event cannot fix.
 
 ## 8. How the suite runs
 

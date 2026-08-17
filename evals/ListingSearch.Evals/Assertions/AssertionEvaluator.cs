@@ -206,6 +206,8 @@ public static partial class AssertionEvaluator
             IngestionOutcome.Applied => "applied",
             IngestionOutcome.DuplicateIgnored => "duplicate_ignored",
             IngestionOutcome.Failed => "failed",
+            IngestionOutcome.Deferred => "deferred",
+            IngestionOutcome.DeadLettered => "dead_lettered",
             _ => throw new InvalidOperationException($"Unhandled IngestionOutcome '{ingestOutcome}'."),
         };
 

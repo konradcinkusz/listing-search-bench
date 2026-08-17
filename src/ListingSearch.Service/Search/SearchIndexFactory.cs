@@ -1,3 +1,4 @@
+using ListingSearch.Service.Pipeline.Embedding;
 using ListingSearch.Service.Search.Elasticsearch;
 using ListingSearch.Service.Search.Fixtures;
 using Microsoft.Extensions.Logging;
@@ -15,12 +16,13 @@ public static class SearchIndexFactory
         SearchIndexOptions options,
         IReadOnlyList<ListingDocument> seed,
         ILogger? logger = null,
-        Func<ISearchIndex, ISearchIndex>? decorate = null)
+        Func<ISearchIndex, ISearchIndex>? decorate = null,
+        IEmbeddingProvider? embeddingProvider = null)
     {
         ISearchIndex backend = options.Mode switch
         {
             SearchIndexMode.Elasticsearch when HasElasticsearchSettings(options) =>
-                new ElasticsearchIndex(options),
+                new ElasticsearchIndex(options, embeddingProvider),
 
             SearchIndexMode.Elasticsearch =>
                 FallBackToFixture(logger, seed),

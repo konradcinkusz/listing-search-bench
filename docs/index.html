@@ -354,13 +354,13 @@
       <div class="facts" aria-label="Key numbers">
         <div class="fact">
           <p class="k">the contract</p>
-          <p class="v">11 behaviours · 7 hard constraints</p>
-          <p><code>docs/SPEC.md</code> was accepted before <code>ListingSearch.Service</code> existed. B-1 through B-11, C-1 through C-7, five judge rubrics.</p>
+          <p class="v">12 behaviours · 7 hard constraints</p>
+          <p><code>docs/SPEC.md</code> was accepted before <code>ListingSearch.Service</code> existed. B-1 through B-12, C-1 through C-7, five judge rubrics.</p>
         </div>
         <div class="fact">
           <p class="k">the evidence</p>
-          <p class="v">26 scenarios · 116 assertions</p>
-          <p>27 of them (23%) assert <em>absence</em> — that a listing was never a candidate on either retrieval path, never in a response, never re-applied on replay.</p>
+          <p class="v">28 scenarios · 128 assertions</p>
+          <p>28 of them (22%) assert <em>absence</em> — that a listing was never a candidate on either retrieval path, never in a response, never re-applied on replay.</p>
         </div>
         <div class="fact">
           <p class="k">the mutation pass</p>
@@ -397,8 +397,8 @@
         <div class="piece"><code>ListingSearch.Service</code><span>The service: the five-stage ranking pipeline, the <code>ISearchIndex</code> seam, the ingestion consumer — the only write path — and OpenTelemetry instrumentation on every stage and every index call.</span></div>
         <div class="piece"><code>ListingSearch.AppHost</code><span>.NET Aspire composition root — development only, never containerised. One command brings the system up with nothing configured.</span></div>
         <div class="piece"><code>ListingSearch.ServiceDefaults</code><span>The kernel: OpenTelemetry, health checks, discovery, resilience — thin by rule.</span></div>
-        <div class="piece"><code>docs/SPEC.md</code><span>The behaviour contract — 11 behaviours, 7 hard constraints, 5 rubrics — written before the pipeline existed.</span></div>
-        <div class="piece"><code>evals/</code><span>26 scenarios in five classes, a shared fictional catalogue plus per-scenario deltas, versioned rubrics, recorded baselines. All YAML and JSON — data, not code.</span></div>
+        <div class="piece"><code>docs/SPEC.md</code><span>The behaviour contract — 12 behaviours, 7 hard constraints, 5 rubrics — written before the pipeline existed.</span></div>
+        <div class="piece"><code>evals/</code><span>28 scenarios in five classes, a shared fictional catalogue plus per-scenario deltas, versioned rubrics, recorded baselines. All YAML and JSON — data, not code.</span></div>
         <div class="piece"><code>evals/ListingSearch.Evals</code><span>The harness: Layer 1 deterministic trace assertions, a Layer 2 rubric judge (never yet run against a live model — D-1), and the four-variant mutation pass. Never ships in a container.</span></div>
         <div class="piece"><code>k8s/ · docker-compose.yml</code><span>Illustrative deployment manifests and a local Elasticsearch + Kibana pair — neither has ever been applied against, or run inside, a real cluster (D-4, D-5).</span></div>
       </div>
@@ -648,7 +648,7 @@
       <figure class="diagram">
         <div class="diagram-wrap">
         <svg viewBox="0 0 920 500" role="img"
-             aria-label="The evaluation loop: the spec feeds 26 YAML scenarios, which the ScenarioRunner executes in process against the real pipeline plus four deliberately broken variants, producing captured traces. Layer 1 applies 116 deterministic assertions, 27 of them asserting absence; constraints hard-block at 100 percent, behaviours are measured against a recorded baseline. Layer 2 is a rubric-anchored judge that has never been keyed with a credential. Both feed the CI gates in ci.yml on every push. There is no production loop yet, because no deployed, trafficked endpoint exists to extract an incident from.">
+             aria-label="The evaluation loop: the spec feeds 28 YAML scenarios, which the ScenarioRunner executes in process against the real pipeline plus four deliberately broken variants, producing captured traces. Layer 1 applies 128 deterministic assertions, 28 of them asserting absence; constraints hard-block at 100 percent, behaviours are measured against a recorded baseline. Layer 2 is a rubric-anchored judge that has never been keyed with a credential. Both feed the CI gates in ci.yml on every push. There is no production loop yet, because no deployed, trafficked endpoint exists to extract an incident from.">
           <defs>
             <marker id="arw3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
               <path class="head" d="M0,0 L8,4 L0,8 z"/>
@@ -658,14 +658,14 @@
           <rect class="box" x="40" y="50" width="250" height="96" rx="5"/>
           <text class="name" x="56" y="74">docs/SPEC.md — the contract</text>
           <text class="meta" x="56" y="94">written before the pipeline existed:</text>
-          <text class="meta" x="56" y="110">11 behaviours · 7 hard constraints</text>
+          <text class="meta" x="56" y="110">12 behaviours · 7 hard constraints</text>
           <text class="meta" x="56" y="126">5 rubrics · 5 out-of-scope items</text>
 
           <polyline class="edge" points="165,146 165,196" marker-end="url(#arw3)"/>
           <text class="lbl" x="175" y="176">each behaviour cites its proof</text>
 
           <rect class="box" x="40" y="196" width="250" height="96" rx="5"/>
-          <text class="name" x="56" y="220">evals/scenarios — 26, as YAML</text>
+          <text class="name" x="56" y="220">evals/scenarios — 28, as YAML</text>
           <text class="meta" x="56" y="240">happy · ambiguity · exclusion ·</text>
           <text class="meta" x="56" y="256">adversarial · degradation</text>
           <text class="meta" x="56" y="272">schema-validated · shared fixture + deltas</text>
@@ -686,8 +686,8 @@
 
           <rect class="box" x="660" y="50" width="220" height="110" rx="5"/>
           <text class="name" x="676" y="74">Layer 1 — deterministic</text>
-          <text class="meta" x="676" y="94">116 assertions over the trace,</text>
-          <text class="meta" x="676" y="110">27 of them assert absence (23%)</text>
+          <text class="meta" x="676" y="94">128 assertions over the trace,</text>
+          <text class="meta" x="676" y="110">28 of them assert absence (22%)</text>
           <text class="meta" x="676" y="126">constraints: 100% or no merge</text>
           <text class="meta" x="676" y="142">behaviours: vs the recorded baseline</text>
 

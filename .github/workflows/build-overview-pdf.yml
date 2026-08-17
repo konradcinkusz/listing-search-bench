@@ -1,0 +1,66 @@
+name: Build Overview PDF
+
+# Renders docs/OVERVIEW.md to PDF via pandoc's LaTeX backend (pdflatex), on
+# demand only (workflow_dispatch) — a presentation of the living overview
+# document, not a versioned release artifact: there is no tag, no changelog
+# entry, and nobody depends on a specific build of it existing anywhere
+# (ADR-0007).
+#
+# PDFs are build output: nothing this workflow produces is committed to the
+# repository (see .gitignore's LaTeX build-output block). The PDF is
+# downloaded from the run's own Artifacts section.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-overview-pdf-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build PDF
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pandoc and a LaTeX engine
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            pandoc texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended lmodern
+
+      - name: Render docs/OVERVIEW.md to PDF
+        run: |
+          set -euo pipefail
+          pandoc docs/OVERVIEW.md \
+            -o ListingSearchBench_Overview.pdf \
+            --from=gfm \
+            --toc --toc-depth=2 \
+            -V geometry:margin=2.2cm \
+            -V colorlinks=true -V linkcolor=blue \
+            --pdf-engine=pdflatex
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ListingSearchBench_Overview_PDF
+          path: ListingSearchBench_Overview.pdf
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Summary
+        run: |
+          {
+            echo "## Overview PDF built"
+            echo
+            echo "Rendered from \`docs/OVERVIEW.md\` via pandoc's LaTeX backend (pdflatex)."
+            echo
+            echo "Download **ListingSearchBench_Overview_PDF** from this run's Artifacts section below."
+          } >> "$GITHUB_STEP_SUMMARY"

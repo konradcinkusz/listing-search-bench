@@ -14,7 +14,7 @@ namespace ListingSearch.Service.Pipeline.Stages;
 /// (SPEC §8.6) targets, and a reader skimming only <see cref="LexicalRetrieverStage"/>
 /// would otherwise reasonably assume one filter object is threaded through both.
 /// </summary>
-public sealed class VectorRetrieverStage(ISearchIndex index, SearchOptions options) : ISearchStage
+public sealed class VectorRetrieverStage(ISearchIndex index, SearchOptions options, IEmbeddingProvider embeddingProvider) : ISearchStage
 {
     public string Name => "vector_retriever";
 
@@ -23,9 +23,20 @@ public sealed class VectorRetrieverStage(ISearchIndex index, SearchOptions optio
     public async ValueTask<StageSignal> ExecuteAsync(SearchTurnContext context, CancellationToken cancellationToken)
     {
         var filter = context.Filter!;
-        var queryEmbedding = DeterministicTextEmbedding.Compute(context.Tokens);
+        var embedding = await embeddingProvider.EmbedAsync(context.Request.QueryText, cancellationToken).ConfigureAwait(false);
 
-        var result = await index.VectorQueryAsync(filter, queryEmbedding, options.CandidatePoolSize, cancellationToken)
+        if (embedding.Degraded)
+        {
+            // Partial output with a note, not a fabricated empty result — the same
+            // contract every other retrieval-path failure follows (SPEC §7).
+            context.NoteDegradation(
+                SearchDiagnostics.DegradationStages.VectorRetrieval,
+                embedding.DegradationKind ?? SearchDiagnostics.DegradationKinds.MalformedEmbedding);
+            context.VectorCandidates = [];
+            return StageSignal.Continue;
+        }
+
+        var result = await index.VectorQueryAsync(filter, embedding.Vector!, options.CandidatePoolSize, cancellationToken)
             .ConfigureAwait(false);
 
         foreach (var rejectedId in result.Rejected)

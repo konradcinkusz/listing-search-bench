@@ -1,8 +1,12 @@
+using System.Threading.RateLimiting;
+using ListingSearch.Service.Endpoints;
 using ListingSearch.Service.Ingestion;
 using ListingSearch.Service.Pipeline;
+using ListingSearch.Service.Pipeline.Embedding;
 using ListingSearch.Service.Pipeline.Stages;
 using ListingSearch.Service.Search;
 using ListingSearch.Service.Search.Fixtures;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -31,7 +35,40 @@ public static class ServiceCollectionExtensions
             var logger = sp.GetService<ILogger<InMemoryFixtureIndex>>();
             var seed = LoadFixture(options.FixtureName);
 
-            return SearchIndexFactory.Build(options, seed, logger);
+            // Falls back to a fresh DeterministicEmbeddingProvider if AddSearchPipeline
+            // (which registers IEmbeddingProvider) was never called against this
+            // collection — SearchIndexFactory.Build stays usable on its own, the same
+            // way it already is for every caller that isn't this composition root.
+            var embeddingProvider = sp.GetService<IEmbeddingProvider>();
+
+            return SearchIndexFactory.Build(options, seed, logger, embeddingProvider: embeddingProvider);
+        });
+
+        services.AddHealthChecks().AddCheck<SearchIndexHealthCheck>("search_index");
+
+        return services;
+    }
+
+    public static IServiceCollection AddSearchRateLimiting(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<SearchRateLimitOptions>(configuration.GetSection(SearchRateLimitOptions.SectionName));
+
+        services.AddRateLimiter(limiter =>
+        {
+            limiter.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            limiter.AddPolicy(SearchRateLimitOptions.PolicyName, httpContext =>
+            {
+                var options = httpContext.RequestServices.GetRequiredService<IOptions<SearchRateLimitOptions>>().Value;
+                var partitionKey = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+                return RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = options.PermitLimit,
+                    Window = TimeSpan.FromSeconds(options.WindowSeconds),
+                    QueueLimit = 0,
+                });
+            });
         });
 
         return services;
@@ -41,6 +78,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton<IListingCatalog>(new InMemoryListingCatalog());
         services.AddSingleton<IEventIdempotencyStore, InMemoryEventIdempotencyStore>();
+        services.AddSingleton<IPendingEventBuffer, InMemoryPendingEventBuffer>();
+        services.AddSingleton<IDeadLetterSink, InMemoryDeadLetterSink>();
         services.AddSingleton<IIngestionConsumer, IngestionConsumer>();
 
         return services;
@@ -50,6 +89,11 @@ public static class ServiceCollectionExtensions
     {
         services.Configure<SearchOptions>(configuration.GetSection(SearchOptions.SectionName));
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<SearchOptions>>().Value);
+
+        // The seam a real embedding model would sit behind (D-1) — registered here,
+        // not in AddSearchIndex, because the eval harness builds the pipeline through
+        // this method directly (ScenarioRunner) without ever calling AddSearchIndex.
+        services.AddSingleton<IEmbeddingProvider, DeterministicEmbeddingProvider>();
 
         // Registration order IS the pipeline order (SearchOrchestrator resolves
         // IEnumerable<ISearchStage> and runs it as given) — SPEC's stage list, in code.
@@ -70,6 +114,7 @@ public static class ServiceCollectionExtensions
         services.AddSearchIndex(configuration);
         services.AddIngestion();
         services.AddSearchPipeline(configuration);
+        services.AddSearchRateLimiting(configuration);
 
         return services;
     }

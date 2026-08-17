@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: deg-006-out-of-order-price-change-defers-then-replays
+class: degradation
+gate: constraint
+title: A price_changed event ahead of its listing.published event defers, then replays
+
+why: >-
+  SPEC §7.2, B-12 — a transport that does not guarantee delivery order across
+  partitions can legitimately deliver a price_changed one message ahead of
+  the published event it patches. Treating that as malformed would drop a
+  real price update; this scenario proves the buffered event replays and
+  wins over the published payload's own (stale) price.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: ingest
+    event:
+      event_id: evt-deg6-001
+      type: price_changed
+      listing_id: lst-1402
+      price_chf: 480000
+  - action: ingest
+    event:
+      event_id: evt-deg6-002
+      type: published
+      listing_id: lst-1402
+      title: Renovated 3-room apartment, Zurich Altstetten
+      description: A recently renovated 3-room apartment in Altstetten, close to transit.
+      city: Zurich
+      price_chf: 530000
+      rooms: 3
+      owner_id: own-004
+  - action: search
+    request:
+      query: renovated apartment altstetten
+      city: Zurich
+      max_price: 480000
+      top: 5
+
+expect:
+  - assert: ingestion_outcome
+    step: 1
+    value: deferred
+  - assert: event_emitted
+    event: ingestion.deferred
+    times: 1
+  - assert: ingestion_outcome
+    step: 2
+    value: applied
+  - assert: event_emitted
+    event: ingestion.applied
+    times: 2
+  - assert: outcome
+    step: 3
+    value: completed
+  - assert: result_includes
+    step: 3
+    listing: lst-1402
+
+rubrics:
+  - degradation-honesty
