@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: deg-002-vector-malformed-embedding-degrades-to-lexical-only
+class: degradation
+gate: behaviour
+title: A malformed embedding from the vector path degrades to lexical-only results
+
+why: >-
+  The mirror image of deg-001. A malformed embedding is exactly the failure
+  a real vector store can hand back — not an exception, a response that
+  cannot be scored — and it must be treated as a degraded read on that path,
+  not surfaced as an error that takes the whole request down with it.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+  index_behaviour:
+    vector_query:
+      outcome: malformed_embedding
+
+steps:
+  - action: search
+    request:
+      query: modern apartment zurich
+      city: Zurich
+      top: 5
+
+expect:
+  - assert: outcome
+    value: degraded
+  - assert: event_emitted
+    event: degradation.noted
+    at_least: 1
+  - assert: result_includes
+    listing: lst-1001
+  - assert: result_attribution
+    listing: lst-1001
+    value: lexical
+  - assert: candidate_set_excludes
+    listing: lst-1001
+    path: vector
+
+rubrics:
+  - degradation-honesty

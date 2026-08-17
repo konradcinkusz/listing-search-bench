@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: amb-001-city-omitted-ranks-across-cities
+class: ambiguity
+gate: behaviour
+title: No city given ranks across every city rather than returning nothing
+
+why: >-
+  SPEC B-5 — an omitted city is an ambiguity to rank around, not a reason to
+  fail closed. "modern apartment" with no city should surface strong matches
+  from more than one city, proving the omission was not silently treated as
+  "no results anywhere".
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: modern apartment
+      top: 8
+
+expect:
+  - assert: result_includes
+    listing: lst-1001
+  - assert: result_includes
+    listing: lst-1006
+  - assert: result_includes
+    listing: lst-1007
+  - assert: result_count
+    at_least: 6
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - relevance

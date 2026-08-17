@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: listing-search
+  namespace: listing-search
+  labels:
+    app: listing-search
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: listing-search
+  template:
+    metadata:
+      labels:
+        app: listing-search
+    spec:
+      containers:
+        - name: search-service
+          # Built from src/ListingSearch.Service/Dockerfile — no registry is
+          # wired to this repository, so this is a placeholder tag, not a
+          # published image.
+          image: listing-search-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: listing-search-config
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /alive
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+      securityContext:
+        fsGroup: 1654

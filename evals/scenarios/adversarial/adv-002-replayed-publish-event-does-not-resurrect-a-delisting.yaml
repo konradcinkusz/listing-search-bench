@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: adv-002-replayed-publish-event-does-not-resurrect-a-delisting
+class: adversarial
+gate: constraint
+title: Replaying the original publish event after a delisting does not bring it back
+
+why: >-
+  SPEC C-1 and C-6 together. A listing is published, then delisted; an
+  attacker (or a naive retry) replays the ORIGINAL listing.published event —
+  same event_id as the first time — hoping idempotency-as-implemented treats
+  it as a fresh write and resurrects the listing. It must instead be
+  recognised as an already-applied event_id and ignored, leaving the
+  delisting in force.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: ingest
+    event:
+      event_id: evt-adv2-001
+      type: published
+      listing_id: lst-1501
+      title: Riverside apartment, Lucerne
+      description: A pleasant riverside apartment in Lucerne, close to the old town.
+      city: Lucerne
+      price_chf: 700000
+      rooms: 3
+      owner_id: own-001
+  - action: search
+    request:
+      query: riverside apartment lucerne
+      city: Lucerne
+      top: 5
+  - action: ingest
+    event:
+      event_id: evt-adv2-002
+      type: delisted
+      listing_id: lst-1501
+  - action: search
+    request:
+      query: riverside apartment lucerne
+      city: Lucerne
+      top: 5
+  - action: ingest
+    event:
+      event_id: evt-adv2-001
+      type: published
+      listing_id: lst-1501
+      title: Riverside apartment, Lucerne
+      description: A pleasant riverside apartment in Lucerne, close to the old town.
+      city: Lucerne
+      price_chf: 700000
+      rooms: 3
+      owner_id: own-001
+  - action: search
+    request:
+      query: riverside apartment lucerne
+      city: Lucerne
+      top: 5
+
+expect:
+  - assert: ingestion_outcome
+    step: 1
+    value: applied
+  - assert: result_includes
+    step: 2
+    listing: lst-1501
+  - assert: ingestion_outcome
+    step: 3
+    value: applied
+  - assert: result_excludes
+    step: 4
+    listing: lst-1501
+  - assert: ingestion_outcome
+    step: 5
+    value: duplicate_ignored
+  - assert: result_excludes
+    step: 6
+    listing: lst-1501
+  - assert: event_emitted
+    event: ingestion.duplicate_ignored
+    times: 1
+
+rubrics:
+  - exclusion-honesty

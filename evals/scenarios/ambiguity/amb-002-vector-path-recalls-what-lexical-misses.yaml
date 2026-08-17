@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: amb-002-vector-path-recalls-what-lexical-misses
+class: ambiguity
+gate: behaviour
+title: The vector path recalls a genuine match with zero literal word overlap
+
+why: >-
+  SPEC B-3 — the Geneva apartment shares not one token with "modern
+  apartment" (its own text is French), so the lexical path finds nothing.
+  The embedding still places it close enough to recall, which is the entire
+  reason a hybrid system carries a second retrieval path at all.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: modern apartment
+      city: Geneva
+      top: 5
+
+expect:
+  - assert: result_includes
+    listing: lst-1008
+  - assert: candidate_set_excludes
+    listing: lst-1008
+    path: lexical
+  - assert: candidate_set_includes
+    listing: lst-1008
+    path: vector
+  - assert: result_attribution
+    listing: lst-1008
+    value: vector
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - attribution-clarity

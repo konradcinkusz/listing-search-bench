@@ -1,0 +1,110 @@
+<Project>
+
+  <!--
+    Directory.Build.props — one place where every project in this repository gets its
+    target framework, language version, analyzer posture and package metadata.
+
+    Rationale: REPO-BASELINE.md §1 — ten .csproj files each pinning their own package
+    versions is version skew waiting to happen. Package *versions* live in
+    Directory.Packages.props (central package management); everything that is not a
+    version lives here. Mirrored from agent-eval-bench's Directory.Build.props, which
+    this repository follows rather than re-deriving (README "How this repository
+    relates to the standards").
+  -->
+
+  <PropertyGroup Label="Target framework and language">
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!--
+      Globalization stays ON. City names and free-text queries in this corpus include
+      French and German listings (SPEC B-7); InvariantGlobalization=true would make
+      culture-aware comparisons silently fall back to the invariant culture — a wrong
+      answer with no error, which is the worst failure mode an eval can face. The
+      runtime image therefore carries ICU; that cost is declared, not assumed (P6).
+    -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <UseSystemResourceKeys>false</UseSystemResourceKeys>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Build correctness">
+    <!-- Warnings are errors everywhere, including local builds. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>9999</WarningLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!--
+      CS1591 (missing XML comment on a public member) off: the documentation file is
+      generated for the analyzer surface, not to force a doc comment on every DTO.
+      CA1848 (LoggerMessage delegates) and CA1000 (no static members on generic types)
+      off: neither defect this service's call volumes or shapes need guarding against.
+    -->
+    <NoWarn>$(NoWarn);CS1591;CA1848;CA1000</NoWarn>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Central package management">
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <!-- A restore that silently accepts a vulnerable transitive package is not a restore. -->
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Vulnerability policy">
+    <!--
+      NU1901 (low) / NU1902 (moderate) → warning, visible, does not block.
+      NU1903 (high) / NU1904 (critical) → error, blocks the merge.
+    -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1901;NU1902</WarningsNotAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package and repository metadata">
+    <Product>ListingSearch</Product>
+    <Company>listing-search-bench</Company>
+    <Authors>Konrad Cinkusz</Authors>
+    <Copyright>Copyright (c) 2026 Konrad Cinkusz</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/konradcinkusz/listing-search-bench</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Never pack, unless a project opts in">
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!--
+    Test projects: conventionally named *.Tests, living under tests/. *.Evals matches
+    too — the eval suite is a test project by every property that matters.
+  -->
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests')) or $(MSBuildProjectName.EndsWith('.Evals'))">
+    <IsTestProject>true</IsTestProject>
+    <!--
+      Test projects keep the compiler's rules and warnings-as-errors. What they drop
+      are the library-design rules aimed at a public API surface a test assembly does
+      not have:
+
+        CA1707  identifiers should not contain underscores. Test names are sentences.
+        CA1859  prefer the concrete type over the interface for performance. Several
+                tests type a variable as ISearchIndex deliberately — exercising the
+                interface is the point.
+        CA1861  avoid constant arrays as arguments. Inline expected values are what
+                makes an assertion readable.
+        CA1515  types can be internal. A test class is discovered by reflection.
+
+      And one from xunit's own analyzers:
+
+        xUnit1051  pass TestContext.Current.CancellationToken to anything that takes
+                one. These tests are in-memory and cannot hang; threading a token
+                through every call site would add noise, not safety.
+    -->
+    <NoWarn>$(NoWarn);CA1707;CA1859;CA1861;CA1515;xUnit1051</NoWarn>
+  </PropertyGroup>
+
+</Project>

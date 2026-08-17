@@ -1,0 +1,17 @@
+{
+  "name": "listing-search-bench",
+  "private": true,
+  "description": "Tooling only — nothing here ships in any container.",
+  "scripts": {
+    "lint": "npm run lint:md && npm run validate:scenarios && npm run validate:fixtures",
+    "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\"",
+    "validate:scenarios": "node scripts/validate-scenarios.mjs",
+    "validate:fixtures": "node scripts/validate-fixtures.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "markdownlint-cli2": "^0.15.0",
+    "yaml": "^2.6.1"
+  }
+}

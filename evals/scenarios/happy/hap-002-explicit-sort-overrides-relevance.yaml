@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=../../schema/scenario.schema.json
+id: hap-002-explicit-sort-overrides-relevance
+class: happy
+gate: behaviour
+title: An explicit price sort is honoured over the relevance ranking
+
+why: >-
+  A caller who asks to sort by price wants price order, not "our best guess
+  at relevance with a price tiebreaker". lst-1012 is the cheaper of the two
+  genuine studio matches and scores lower on relevance than lst-1002;
+  sort=price_ascending must still rank it ahead.
+
+origin:
+  kind: designed
+  date: '2026-08-17'
+
+fixture:
+  base: zurich-catalogue
+
+steps:
+  - action: search
+    request:
+      query: studio
+      city: Zurich
+      sort: price_ascending
+      top: 5
+
+expect:
+  - assert: result_includes
+    listing: lst-1012
+  - assert: result_includes
+    listing: lst-1002
+  - assert: result_ranked_below
+    listing: lst-1002
+    than: lst-1012
+  - assert: outcome
+    value: completed
+
+rubrics:
+  - relevance
