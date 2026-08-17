@@ -8,8 +8,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: homefinder-search
-  minReplicas: 2
-  maxReplicas: 6
+  # Pinned to 1/1 — a no-op scaler for now, kept for shape rather than deleted.
+  # Scaling out is unsafe until IEventIdempotencyStore is persistent and shared
+  # (ADR-0006, k8s/deployment.yaml); raise these once that lands.
+  minReplicas: 1
+  maxReplicas: 1
   metrics:
     - type: Resource
       resource:

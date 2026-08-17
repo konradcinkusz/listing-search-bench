@@ -121,6 +121,8 @@ public static class ScenarioRunner
 
         services.AddSingleton<IListingCatalog>(new InMemoryListingCatalog(world.Listings));
         services.AddSingleton<IEventIdempotencyStore, InMemoryEventIdempotencyStore>();
+        services.AddSingleton<IPendingEventBuffer, InMemoryPendingEventBuffer>();
+        services.AddSingleton<IDeadLetterSink, InMemoryDeadLetterSink>();
         services.AddSingleton<IIngestionConsumer, IngestionConsumer>();
 
         services.AddSingleton<ISearchIndex>(_ =>

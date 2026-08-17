@@ -1,6 +1,6 @@
 {
   "layer": 1,
-  "specVersion": "1.0.0",
+  "specVersion": "1.1.0",
   "embedding": "deterministic-hash-v1",
   "recorded": "2026-08-17",
   "scenarios": {
@@ -29,6 +29,8 @@
     "deg-002-vector-malformed-embedding-degrades-to-lexical-only": "pass",
     "deg-003-both-paths-time-out-explicit-empty-not-silent": "pass",
     "deg-004-failed-ingestion-event-is-not-marked-processed": "pass",
-    "deg-005-a-timeout-is-never-retried": "pass"
+    "deg-005-a-timeout-is-never-retried": "pass",
+    "deg-006-out-of-order-price-change-defers-then-replays": "pass",
+    "deg-007-a-listings-pending-buffer-dead-letters-when-full": "pass"
   }
 }

@@ -37,7 +37,7 @@ public sealed class DisablesHardPriceFilterStage : ISearchStage
     }
 }
 
-public sealed class SkipsDelistedCheckOnVectorPathStage(ISearchIndex index, SearchOptions options) : ISearchStage
+public sealed class SkipsDelistedCheckOnVectorPathStage(ISearchIndex index, SearchOptions options, IEmbeddingProvider embeddingProvider) : ISearchStage
 {
     public string Name => "vector_retriever";
 
@@ -59,8 +59,18 @@ public sealed class SkipsDelistedCheckOnVectorPathStage(ISearchIndex index, Sear
             original.MaxRooms,
             AllowedStatuses: [ListingStatus.Active, ListingStatus.Draft, ListingStatus.Delisted, ListingStatus.Expired]);
 
-        var queryEmbedding = DeterministicTextEmbedding.Compute(context.Tokens);
-        var result = await index.VectorQueryAsync(filter, queryEmbedding, options.CandidatePoolSize, cancellationToken)
+        var embedding = await embeddingProvider.EmbedAsync(context.Request.QueryText, cancellationToken).ConfigureAwait(false);
+
+        if (embedding.Degraded)
+        {
+            context.NoteDegradation(
+                SearchDiagnostics.DegradationStages.VectorRetrieval,
+                embedding.DegradationKind ?? SearchDiagnostics.DegradationKinds.MalformedEmbedding);
+            context.VectorCandidates = [];
+            return StageSignal.Continue;
+        }
+
+        var result = await index.VectorQueryAsync(filter, embedding.Vector!, options.CandidatePoolSize, cancellationToken)
             .ConfigureAwait(false);
 
         foreach (var rejectedId in result.Rejected)

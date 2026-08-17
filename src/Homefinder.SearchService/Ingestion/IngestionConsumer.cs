@@ -17,7 +17,12 @@ public interface IIngestionConsumer
 /// hand every adversarial scenario a way around the exact thing this specification
 /// tests.
 /// </summary>
-public sealed class IngestionConsumer(ISearchIndex index, IListingCatalog catalog, IEventIdempotencyStore idempotency)
+public sealed class IngestionConsumer(
+    ISearchIndex index,
+    IListingCatalog catalog,
+    IEventIdempotencyStore idempotency,
+    IPendingEventBuffer pending,
+    IDeadLetterSink deadLetters)
     : IIngestionConsumer
 {
     public async ValueTask<IngestionOutcome> ConsumeAsync(IngestionEnvelope envelope, CancellationToken cancellationToken = default)
@@ -37,6 +42,34 @@ public sealed class IngestionConsumer(ISearchIndex index, IListingCatalog catalo
             return IngestionOutcome.DuplicateIgnored;
         }
 
+        return await ApplyAsync(envelope, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Applies one already-<see cref="IEventIdempotencyStore.TryReserve"/>d envelope —
+    /// called once from <see cref="ConsumeAsync"/> for a freshly received event, and
+    /// again, recursively, from <see cref="ReplayPendingAsync"/> for each envelope a
+    /// <c>published</c> event's arrival unblocks. Replayed envelopes were reserved when
+    /// they were first deferred, so this never reserves twice for one <c>event_id</c>.
+    /// </summary>
+    private async ValueTask<IngestionOutcome> ApplyAsync(IngestionEnvelope envelope, CancellationToken cancellationToken)
+    {
+        var payload = envelope.Payload;
+
+        if (envelope.Type is ListingEventType.PriceChanged or ListingEventType.Delisted
+            && catalog.Find(payload.ListingId) is null)
+        {
+            // A price_changed missing its own price is malformed regardless of
+            // whether the listing exists yet — deferring it would only delay a
+            // failure that replaying the eventual published event cannot fix.
+            if (envelope.Type == ListingEventType.PriceChanged && payload.PriceChf is not ({ } and >= 0))
+            {
+                return Fail(envelope);
+            }
+
+            return Defer(envelope);
+        }
+
         try
         {
             var listing = Resolve(envelope);
@@ -46,21 +79,67 @@ public sealed class IngestionConsumer(ISearchIndex index, IListingCatalog catalo
             SearchTurnContext.EmitEvent(
                 SearchDiagnostics.Events.IngestionApplied,
                 (SearchDiagnostics.Attributes.IngestionEventId, envelope.EventId),
-                (SearchDiagnostics.Attributes.IngestionListingId, envelope.Payload.ListingId));
+                (SearchDiagnostics.Attributes.IngestionListingId, payload.ListingId));
+
+            if (envelope.Type == ListingEventType.Published)
+            {
+                await ReplayPendingAsync(payload.ListingId, cancellationToken).ConfigureAwait(false);
+            }
 
             return IngestionOutcome.Applied;
         }
         catch (InvalidOperationException)
         {
-            // SPEC §7.2: a failed apply releases the reservation, so a corrected
-            // replay of the same event_id is not mistaken for a duplicate.
-            idempotency.Release(envelope.EventId);
+            return Fail(envelope);
+        }
+    }
 
+    private IngestionOutcome Fail(IngestionEnvelope envelope)
+    {
+        // SPEC §7.2: a failed apply releases the reservation, so a corrected replay
+        // of the same event_id is not mistaken for a duplicate.
+        idempotency.Release(envelope.EventId);
+
+        SearchTurnContext.EmitEvent(
+            SearchDiagnostics.Events.IngestionFailed,
+            (SearchDiagnostics.Attributes.IngestionEventId, envelope.EventId));
+
+        return IngestionOutcome.Failed;
+    }
+
+    private IngestionOutcome Defer(IngestionEnvelope envelope)
+    {
+        if (pending.TryDefer(envelope.Payload.ListingId, envelope))
+        {
             SearchTurnContext.EmitEvent(
-                SearchDiagnostics.Events.IngestionFailed,
-                (SearchDiagnostics.Attributes.IngestionEventId, envelope.EventId));
+                SearchDiagnostics.Events.IngestionDeferred,
+                (SearchDiagnostics.Attributes.IngestionEventId, envelope.EventId),
+                (SearchDiagnostics.Attributes.IngestionListingId, envelope.Payload.ListingId));
+            return IngestionOutcome.Deferred;
+        }
 
-            return IngestionOutcome.Failed;
+        // The pending buffer for this listing is already full — no published event
+        // has arrived after maxPerListing attempts. Giving up is the honest answer;
+        // buffering forever is not (SPEC §7.2, B-12).
+        idempotency.Release(envelope.EventId);
+
+        const string reason = "no listing.published seen before this listing's pending buffer filled up";
+        deadLetters.Publish(new DeadLetteredEvent(envelope.EventId, envelope.Payload.ListingId, reason, envelope.OccurredAt));
+
+        SearchTurnContext.EmitEvent(
+            SearchDiagnostics.Events.IngestionDeadLettered,
+            (SearchDiagnostics.Attributes.IngestionEventId, envelope.EventId),
+            (SearchDiagnostics.Attributes.IngestionListingId, envelope.Payload.ListingId),
+            (SearchDiagnostics.Attributes.IngestionDeadLetterReason, reason));
+
+        return IngestionOutcome.DeadLettered;
+    }
+
+    private async ValueTask ReplayPendingAsync(string listingId, CancellationToken cancellationToken)
+    {
+        foreach (var buffered in pending.DrainFor(listingId))
+        {
+            await ApplyAsync(buffered, cancellationToken).ConfigureAwait(false);
         }
     }
 

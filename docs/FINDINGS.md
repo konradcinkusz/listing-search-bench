@@ -7,33 +7,34 @@ stale. Every count below is reproducible: `dotnet test --project evals/Homefinde
 
 | | Count |
 |---|---|
-| Scenarios | 26 |
-| Assertions | 116 |
-| Mean assertions per scenario | 4.5 |
-| Constraint-gated scenarios (100% required) | 12 |
-| Absence assertions (`result_excludes`, `candidate_set_excludes`, `event_not_emitted`) | 27 (23%) |
+| Scenarios | 28 |
+| Assertions | 128 |
+| Mean assertions per scenario | 4.6 |
+| Constraint-gated scenarios (100% required) | 13 |
+| Absence assertions (`result_excludes`, `candidate_set_excludes`, `event_not_emitted`) | 28 (22%) |
 | Mutation variants | 4 |
-| Unit tests (`Homefinder.SearchService.Tests`) | 43 |
+| Unit tests (`Homefinder.SearchService.Tests`) | 53 |
 
 | Class | Scenarios | Assertions | Mean |
 |---|---|---|---|
-| happy | 7 | 35 | 5.0 |
-| ambiguity | 5 | 19 | 3.8 |
-| exclusion | 5 | 19 | 3.8 |
+| happy | 7 | 36 | 5.1 |
+| ambiguity | 5 | 20 | 4.0 |
+| exclusion | 5 | 21 | 4.2 |
 | adversarial | 4 | 18 | 4.5 |
-| degradation | 5 | 21 | 4.2 |
+| degradation | 7 | 33 | 4.7 |
 
 | Assertion type | Occurrences |
 |---|---|
-| `result_includes` / `result_excludes` | 33 |
-| `candidate_set_includes` / `candidate_set_excludes` | 17 |
-| `outcome` | 12 |
-| `event_emitted` / `event_not_emitted` | 11 |
-| `result_rank` / `result_ranked_below` | 8 |
+| `result_includes` / `result_excludes` | 40 |
+| `candidate_set_includes` / `candidate_set_excludes` | 18 |
+| `outcome` | 25 |
+| `event_emitted` / `event_not_emitted` | 13 |
+| `result_rank` / `result_ranked_below` | 9 |
 | `result_attribution` | 5 |
-| `ingestion_outcome` | 9 |
-| `call_attempts` | 3 |
+| `ingestion_outcome` | 13 |
+| `call_attempts` | 2 |
 | `result_count` | 2 |
+| `response_excludes_internal_fields` | 1 |
 
 ## 2. What it caught
 

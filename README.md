@@ -5,7 +5,7 @@
 [![Docs](https://flat.badgen.net/static/Docs/architecture%20%26%20eval%20bench?icon=github&color=black&scale=1.01)](https://konradcinkusz.github.io/listing-search-bench/ "Docs")
 
 **A spec-first evaluation bench for a hybrid search and ranking service.** A
-behaviour contract written before the pipeline existed, 26 scenarios stored as
+behaviour contract written before the pipeline existed, 28 scenarios stored as
 data across five classes, and a Layer 1 harness that grades the *execution trace*
 of a real hybrid retrieval pipeline — which candidates a lexical and a vector
 retrieval path actually returned, how they were filtered and ranked, and what was
@@ -26,7 +26,7 @@ specimen changed; **the instrument's shape did not.**
 ```mermaid
 flowchart TD
     spec["<b>docs/SPEC.md</b> — the contract<br/><i>written before the pipeline</i>"]
-    scen["evals/scenarios/ — 26 scenarios as YAML<br/>happy · ambiguity · exclusion ·<br/>adversarial · degradation"]
+    scen["evals/scenarios/ — 28 scenarios as YAML<br/>happy · ambiguity · exclusion ·<br/>adversarial · degradation"]
     runner["ScenarioRunner<br/>the REAL pipeline, in-process<br/>faults injected at the index seam"]
     trace["One captured trace per scenario"]
     l1["<b>Layer 1</b> — deterministic<br/>no model, no network, no credential"]
@@ -76,8 +76,8 @@ counts live.
 
 | | | |
 |---|---|---|
-| **The contract** | 11 behaviours · 7 hard constraints · 5 rubrics | [`docs/SPEC.md`](docs/SPEC.md), written before `src/Homefinder.SearchService` existed |
-| **The evidence** | 26 scenarios · 116 assertions | 27 of them (23%) assert **absence** — that a listing was never a candidate, never in a response, never re-applied |
+| **The contract** | 12 behaviours · 7 hard constraints · 5 rubrics | [`docs/SPEC.md`](docs/SPEC.md), written before `src/Homefinder.SearchService` existed |
+| **The evidence** | 28 scenarios · 128 assertions | 28 of them (22%) assert **absence** — that a listing was never a candidate, never in a response, never re-applied |
 | **The write path** | Exactly one: `IngestionConsumer` | No HTTP route reaches `ISearchIndex.IndexAsync` or `DeleteAsync` any other way — checked by `NoHttpRouteReachesTheIndexTests`, not just stated |
 | **The mutation pass** | 4/4 caught, with a stated caveat | See [§4 of FINDINGS.md](docs/FINDINGS.md#4-the-mutation-pass) — caught on the first run, which is weaker evidence than it looks, and the document says so |
 
@@ -194,7 +194,7 @@ tests/
 evals/
   schema/       the scenario and fixture contracts, as strict JSON Schema
   fixtures/     the shared fictional catalogue; scenarios write only the delta
-  scenarios/    26 scenarios across five classes
+  scenarios/    28 scenarios across five classes
   rubrics/      versioned judge prompt and rubrics
   calibration/  append-only human labels (currently empty — D-1)
   baselines/    recorded pass state a regression is measured against
@@ -203,6 +203,7 @@ docs/
   SPEC.md         the behaviour contract
   FINDINGS.md     what the evals actually caught, in numbers
   DEVIATIONS.md   where this repository departs from the standards — dated, reasoned
+  OVERVIEW.md     the whole repository, narrated start to end — also rendered to PDF on demand
   adr/            architecture decision records
 k8s/              illustrative deployment manifests — not deployed (see docs/DEVIATIONS.md)
 docker-compose.yml   local Elasticsearch + Kibana, for development only

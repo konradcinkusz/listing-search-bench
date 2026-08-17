@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
+using Homefinder.SearchService.Search;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Homefinder.SearchService.Tests;
 
@@ -59,5 +61,59 @@ public sealed class SearchEndpointTests(WebApplicationFactory<Program> factory) 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync();
         Assert.Contains("\"outcome\"", body);
+    }
+
+    [Theory]
+    [InlineData(999999)]
+    [InlineData(-5)]
+    [InlineData(0)]
+    public async Task An_out_of_range_top_is_clamped_rather_than_erroring(int top)
+    {
+        using var client = factory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/search", new { query = "apartment", top });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+}
+
+/// <summary>
+/// Its own <see cref="WebApplicationFactory{TEntryPoint}"/>, with <see cref="ISearchIndex"/>
+/// replaced after the fact — deliberately not <see cref="SearchEndpointTests"/>' shared
+/// fixture, so a simulated outage here can never leak into another test's expectation
+/// that the index is healthy.
+/// </summary>
+public sealed class SearchIndexHealthCheckTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+{
+    [Fact]
+    public async Task An_unhealthy_index_fails_readiness_but_not_liveness()
+    {
+        using var unhealthyFactory = factory.WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services => services.AddSingleton<ISearchIndex>(new UnhealthyIndex())));
+        using var client = unhealthyFactory.CreateClient();
+
+        var readiness = await client.GetAsync("/health");
+        var liveness = await client.GetAsync("/alive");
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, readiness.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, liveness.StatusCode);
+    }
+
+    private sealed class UnhealthyIndex : ISearchIndex
+    {
+        public ValueTask<IndexQueryResult> QueryAsync(
+            SearchIndexFilter filter, IReadOnlyList<string> tokens, int topN, CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(IndexQueryResult.Empty);
+
+        public ValueTask<IndexQueryResult> VectorQueryAsync(
+            SearchIndexFilter filter, IReadOnlyList<double> queryEmbedding, int topN, CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(IndexQueryResult.Empty);
+
+        public ValueTask IndexAsync(ListingDocument document, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
+
+        public ValueTask DeleteAsync(string listingId, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
+
+        public ValueTask<IndexHealth> HealthAsync(CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(new IndexHealth(false, "simulated outage"));
     }
 }
