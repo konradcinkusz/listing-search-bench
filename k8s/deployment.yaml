@@ -6,7 +6,11 @@ metadata:
   labels:
     app: listing-search
 spec:
-  replicas: 2
+  # Pinned to 1: IEventIdempotencyStore is in-memory per instance (ADR-0006), so N
+  # replicas would each independently apply the same ingestion event — N
+  # applications, not one. Raise this only once a persistent, shared
+  # IEventIdempotencyStore exists (ADR-0006's stated revisit condition).
+  replicas: 1
   selector:
     matchLabels:
       app: listing-search

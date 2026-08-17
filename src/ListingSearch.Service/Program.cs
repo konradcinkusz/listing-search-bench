@@ -9,6 +9,7 @@ builder.Services.AddListingSearchService(builder.Configuration);
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
+app.UseRateLimiter();
 app.MapSearchEndpoints();
 
 await app.RunAsync().ConfigureAwait(false);

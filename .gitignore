@@ -58,3 +58,12 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# LaTeX build output (docs/OVERVIEW.md rendered on demand — ADR-0007). PDFs
+# are build output, never committed: a generated binary in git is a merge
+# conflict waiting to happen and a diff nobody can review.
+*.pdf
+*.aux
+*.log
+*.toc
+*.out
