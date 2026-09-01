@@ -1,0 +1,22 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: How this repository evaluates its ranker
+    url: https://github.com/konradcinkusz/listing-search-bench/blob/main/docs/SPEC.md
+    about: >-
+      The behaviour spec is the contract. Before filing a bug, check whether the
+      behaviour you saw is specified, unspecified, or explicitly out of scope —
+      each of the three is a different issue.
+
+  - name: What has never been run
+    url: https://github.com/konradcinkusz/listing-search-bench/blob/main/docs/DEVIATIONS.md
+    about: >-
+      No live Elasticsearch cluster, no trained embedding, no judged run, no
+      traffic. Each gap is dated and reasoned there. "This does not work against
+      a real cluster" is a known deviation, not a bug.
+
+  - name: Architecture standards
+    url: https://github.com/konradcinkusz/architecture-standards
+    about: >-
+      Questions about the reference architecture itself (the principles, the eval
+      standard, the deployment guides) belong in the standards repository, not here.

@@ -7,7 +7,13 @@
     // Inline HTML is used deliberately for the "back to top" anchors and badges.
     "MD033": false,
     // A repository named in kebab-case starts every doc's H1 with it.
-    "MD041": false
+    "MD041": false,
+    // Table pipe spacing: off. This repository writes tables the way the standards
+    // repository does — padded content rows over a compact `|---|` delimiter —
+    // which the rule reads as two styles mixed. Consistency across the estate's
+    // documents is worth more than internal pipe alignment, and GitHub renders
+    // both identically. (Rule added in markdownlint-cli2 0.23.)
+    "MD060": false
   },
   "globs": ["**/*.md"],
   "ignores": ["node_modules/**"]

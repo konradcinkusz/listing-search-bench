@@ -1,0 +1,80 @@
+name: Feature request
+description: Propose a change to what this repository measures, or how.
+title: "feat: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This repository has stated non-goals, and they exist so that scope creep has
+        something to fail against: no UI, no personalisation, no multi-tenant
+        catalogue, no spelling correction or query rewriting, no real-world listing
+        data, and no HTTP route that writes to the index. A proposal that crosses one
+        of those is not automatically rejected — but it has to argue with the
+        non-goal, not around it.
+
+        Work already planned lives on the
+        [roadmap issue](https://github.com/konradcinkusz/listing-search-bench/issues/3).
+        Check there first: eight ordered workstreams are tracked in place.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: >-
+        What cannot be measured, or is measured badly, today. Not the solution — the
+        gap. A feature request that opens with an implementation has usually skipped
+        the part that decides whether it is worth building.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: The proposal
+      description: What you would build, and what it would look like from outside.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which layer does this touch?
+      options:
+        - The pipeline — a ranking, filtering or ingestion behaviour
+        - The instrument — Layer 1 assertions, the mutation pass, the harness
+        - The judge — Layer 2 rubrics, calibration, the prompt
+        - The corpus — scenarios or fixtures
+        - Documentation, the papers, or the published page
+        - CI, tooling, or repository baseline
+    validations:
+      required: true
+
+  - type: textarea
+    id: spec
+    attributes:
+      label: Spec impact
+      description: >-
+        Does this add or change a behaviour (B-n) or a hard constraint (C-n)? If so,
+        `docs/SPEC.md` changes first and the scenarios land in the same pull request.
+        Say which, here.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you considered and rejected
+      description: >-
+        Every ADR in this repository names what it turned down and why. A proposal
+        that names no alternative has usually only found one.
+
+  - type: checkboxes
+    id: nongoals
+    attributes:
+      label: Non-goals
+      options:
+        - label: >-
+            This does not cross a stated non-goal — or it does, and the body above
+            argues why the non-goal should change.
+          required: true

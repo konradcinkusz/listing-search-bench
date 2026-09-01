@@ -1,0 +1,74 @@
+# .dockerignore — exclusion-based, per REPO-BASELINE.md §1.
+#
+# The failure this prevents: the service image build shipping the whole repository
+# as build context — the eval corpus, the docs (including two LaTeX papers and their
+# rendered figures), the tests, and the .git directory — which slows every build and
+# puts files in the image that have no reason to be reachable from a running
+# container.
+#
+# Rule: this file excludes; the Dockerfile copies only the project files it restores
+# and then the source it compiles (P6). Order matters — the re-inclusions at the
+# bottom undo a blanket exclusion above them.
+
+# ─── Source control and CI ───────────────────────────────────────────────────
+.git
+.gitignore
+.gitattributes
+.github
+.editorconfig
+.claude
+
+# ─── Secrets. Belt and braces: these are gitignored, but a developer's working
+#     tree is the build context, and an uncommitted .env would otherwise be
+#     copied into the image. ────────────────────────────────────────────────────
+.env
+.env.*
+secrets.env
+*.pem
+*.pfx
+*.p12
+*.key
+
+# ─── IDE ─────────────────────────────────────────────────────────────────────
+.vs
+.vscode
+.idea
+*.user
+*.suo
+*.DS_Store
+
+# ─── Build output — the image builds its own ─────────────────────────────────
+**/bin
+**/obj
+**/TestResults
+**/artifacts
+**/coverage
+**/node_modules
+
+# ─── Not part of any runtime image ───────────────────────────────────────────
+docs/
+evals/
+scripts/
+tests/
+k8s/
+docker-compose.yml
+package.json
+package-lock.json
+README.md
+LICENSE
+*.md
+
+# …except the fixtures, which ARE the catalogue the in-memory index serves. The
+# service links them from evals/fixtures/ rather than keeping a second copy, so the
+# corpus the scenarios describe and the corpus the service loads cannot drift apart.
+# The Dockerfile copies this path explicitly; without the re-inclusion the build
+# fails at that COPY.
+!evals/fixtures/
+!evals/fixtures/**
+
+# ─── Aspire AppHost: a development-time composition root (P1), never containerized ──
+src/ListingSearch.AppHost/
+
+# ─── The eval harness: it grades the service, it never ships inside it ───────
+src/ListingSearch.Service/bin
+src/ListingSearch.Service/obj
