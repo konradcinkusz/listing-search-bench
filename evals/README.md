@@ -12,7 +12,7 @@ them (`ListingSearch.Evals/`) is one project, and mostly two files in it —
 |---|---|
 | [`schema/`](schema) | `scenario.schema.json` and `fixture.schema.json` — strict JSON Schema, `additionalProperties: false` throughout |
 | [`fixtures/`](fixtures) | `zurich-catalogue.yaml` — the shared base catalogue every scenario starts from unless it names another. Includes active, delisted, expired and draft listings, in English, French and German, plus one deliberately manipulative listing |
-| [`scenarios/`](scenarios) | 26 scenarios in five directories — `happy/`, `ambiguity/`, `exclusion/`, `adversarial/`, `degradation/` — one file per scenario, filename matching the scenario's `id` |
+| [`scenarios/`](scenarios) | 28 scenarios in five directories — `happy/`, `ambiguity/`, `exclusion/`, `adversarial/`, `degradation/` — one file per scenario, filename matching the scenario's `id` |
 | [`rubrics/`](rubrics) | `judge.yaml` (four rubrics, calibration gate) and `judge-prompt.md` (the static template) |
 | [`calibration/`](calibration) | `labels.jsonl`, append-only human labels — currently empty, see [D-1](../docs/DEVIATIONS.md) |
 | [`baselines/`](baselines) | `layer1.json` — recorded pass state, spec version and embedding function a regression is measured against |
