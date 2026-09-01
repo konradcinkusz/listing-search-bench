@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/konradcinkusz/listing-search-bench/evals/schema/scenario.schema.json",
-  "title": "Homefinder Search Service — scenario",
+  "title": "ListingSearch — scenario",
   "description": "One scenario in the Layer 1 corpus (docs/SPEC.md). Field-level semantics that depend on 'assert' (e.g. which of value/at_least/at_most a given assertion type reads) are enforced by AssertionEvaluator at run time, loudly — this schema enforces shape, not per-assert-type meaning.",
   "type": "object",
   "additionalProperties": false,

@@ -44,12 +44,12 @@ jobs:
       - name: Restore and build
         if: steps.check.outputs.configured == 'true'
         run: |
-          dotnet restore Homefinder.slnx
-          dotnet build Homefinder.slnx --no-restore --configuration Release
+          dotnet restore ListingSearch.slnx
+          dotnet build ListingSearch.slnx --no-restore --configuration Release
 
       - name: Run Layer 2 (smoke subset)
         if: steps.check.outputs.configured == 'true'
-        run: dotnet test --project evals/Homefinder.Evals/Homefinder.Evals.csproj --no-build --configuration Release --filter "FullyQualifiedName~Layer2Tests"
+        run: dotnet test --project evals/ListingSearch.Evals/ListingSearch.Evals.csproj --no-build --configuration Release --filter "FullyQualifiedName~Layer2Tests"
         env:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_JUDGE_MODEL: ${{ vars.LLM_JUDGE_MODEL }}
