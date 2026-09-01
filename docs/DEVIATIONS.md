@@ -32,7 +32,7 @@ does not copy, stated so the absence reads as a decision rather than an oversigh
 | Not inherited | Principle | Why it matters here |
 |---|---|---|
 | A confirmation-gate / human-in-the-loop write boundary | AI-EVALS.md §8 | This service has no write path a human approves — the only write is an automated ingestion consumer reacting to an upstream event. There is nothing here for a human to confirm before it happens |
-| A showcase frontend | REPO-BASELINE.md | The JD this repository answers asks about backend and search-ranking engineering, not UI; a demo page would be surface area with no evidentiary value for that JD |
+| A showcase frontend | REPO-BASELINE.md | This repository is about backend and search-ranking engineering, not UI; a demo page would be surface area with no evidentiary value for that |
 | A tag-driven public deployment | FLY-IO-DEPLOYMENT.md | No public demo exists for this POC; `docker-compose.yml` covers local development only |
 
 ## Superseded

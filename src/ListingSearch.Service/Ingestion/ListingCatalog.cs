@@ -5,8 +5,8 @@ namespace ListingSearch.Service.Ingestion;
 
 /// <summary>
 /// The system of record <see cref="IngestionConsumer"/> reads and writes — the role
-/// SQL Server plays in the JD this repository answers (README, "where the repository
-/// answers the JD"). The search index is a denormalised projection built from this,
+/// SQL Server plays in this design (README, "What this repository demonstrates").
+/// The search index is a denormalised projection built from this,
 /// never the other way round: <see cref="ISearchIndex"/> has no read-by-id method
 /// (five methods, ADR-0005), so a partial update like <c>listing.price_changed</c> reads
 /// the current row here, patches it, and pushes the whole resulting document to the

@@ -232,8 +232,8 @@ repository does **not** inherit from the worked example it copies patterns from.
 Stated so that scope creep has something to fail against.
 
 - **No UI.** A REST API and nothing else — no showcase page, unlike the worked
-  example this repository mirrors, because the JD this repository answers is about
-  backend and ranking engineering, not frontend.
+  example this repository mirrors, because this repository is about backend and
+  ranking engineering, not frontend.
 - **No personalisation, no authentication beyond a single fictional owner
   directory, no multi-tenant catalogue.** One fictional catalogue, visible
   identically to every caller — [`docs/SPEC.md` §6](docs/SPEC.md#6-out-of-scope).

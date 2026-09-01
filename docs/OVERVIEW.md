@@ -330,7 +330,7 @@ fixture-composition pattern for eval scenarios) and three patterns the
 worked example this repository mirrors carries that this repository
 deliberately does not: a confirmation-gate write boundary (there is no write
 path a human approves — the only write is an automated consumer), a showcase
-frontend (this JD is about backend and ranking engineering, not UI), and a
+frontend (this repository is about backend and ranking engineering, not UI), and a
 tag-driven public deployment (no public demo exists for this POC).
 
 ## 11. Architecture decision records

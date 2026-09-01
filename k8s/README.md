@@ -1,8 +1,8 @@
 # Kubernetes manifests
 
 Illustrative, not deployed. This POC has no cluster wired to it (`docs/DEVIATIONS.md`
-D-4, D-5) — these manifests exist to answer the JD's "Docker und Kubernetes" line
-with something concrete to review, not to claim a running deployment.
+D-4, D-5) — these manifests exist to make the Docker and Kubernetes shape concrete
+enough to review, not to claim a running deployment.
 
 | File | What it declares |
 |---|---|
