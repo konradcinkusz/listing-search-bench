@@ -76,7 +76,7 @@ counts live.
 
 | | | |
 |---|---|---|
-| **The contract** | 12 behaviours · 7 hard constraints · 5 rubrics | [`docs/SPEC.md`](docs/SPEC.md), written before `src/Homefinder.SearchService` existed |
+| **The contract** | 12 behaviours · 7 hard constraints · 4 rubrics | [`docs/SPEC.md`](docs/SPEC.md), written before `src/Homefinder.SearchService` existed |
 | **The evidence** | 28 scenarios · 128 assertions | 28 of them (22%) assert **absence** — that a listing was never a candidate, never in a response, never re-applied |
 | **The write path** | Exactly one: `IngestionConsumer` | No HTTP route reaches `ISearchIndex.IndexAsync` or `DeleteAsync` any other way — checked by `NoHttpRouteReachesTheIndexTests`, not just stated |
 | **The mutation pass** | 4/4 caught, with a stated caveat | See [§4 of FINDINGS.md](docs/FINDINGS.md#4-the-mutation-pass) — caught on the first run, which is weaker evidence than it looks, and the document says so |

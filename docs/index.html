@@ -397,7 +397,7 @@
         <div class="piece"><code>Homefinder.SearchService</code><span>The service: the five-stage ranking pipeline, the <code>ISearchIndex</code> seam, the ingestion consumer — the only write path — and OpenTelemetry instrumentation on every stage and every index call.</span></div>
         <div class="piece"><code>Homefinder.AppHost</code><span>.NET Aspire composition root — development only, never containerised. One command brings the system up with nothing configured.</span></div>
         <div class="piece"><code>Homefinder.ServiceDefaults</code><span>The kernel: OpenTelemetry, health checks, discovery, resilience — thin by rule.</span></div>
-        <div class="piece"><code>docs/SPEC.md</code><span>The behaviour contract — 12 behaviours, 7 hard constraints, 5 rubrics — written before the pipeline existed.</span></div>
+        <div class="piece"><code>docs/SPEC.md</code><span>The behaviour contract — 12 behaviours, 7 hard constraints, 4 rubrics — written before the pipeline existed.</span></div>
         <div class="piece"><code>evals/</code><span>28 scenarios in five classes, a shared fictional catalogue plus per-scenario deltas, versioned rubrics, recorded baselines. All YAML and JSON — data, not code.</span></div>
         <div class="piece"><code>evals/Homefinder.Evals</code><span>The harness: Layer 1 deterministic trace assertions, a Layer 2 rubric judge (never yet run against a live model — D-1), and the four-variant mutation pass. Never ships in a container.</span></div>
         <div class="piece"><code>k8s/ · docker-compose.yml</code><span>Illustrative deployment manifests and a local Elasticsearch + Kibana pair — neither has ever been applied against, or run inside, a real cluster (D-4, D-5).</span></div>
@@ -659,7 +659,7 @@
           <text class="name" x="56" y="74">docs/SPEC.md — the contract</text>
           <text class="meta" x="56" y="94">written before the pipeline existed:</text>
           <text class="meta" x="56" y="110">12 behaviours · 7 hard constraints</text>
-          <text class="meta" x="56" y="126">5 rubrics · 5 out-of-scope items</text>
+          <text class="meta" x="56" y="126">4 rubrics · 5 out-of-scope items</text>
 
           <polyline class="edge" points="165,146 165,196" marker-end="url(#arw3)"/>
           <text class="lbl" x="175" y="176">each behaviour cites its proof</text>

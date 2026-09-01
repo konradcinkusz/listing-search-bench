@@ -84,8 +84,8 @@ Not a prompt-quality score. An **eval**, in this repository, is a scenario —
 a request or an ingestion event, played through the real pipeline — plus a
 set of assertions over the resulting **trace**: which candidates each
 retrieval path returned, how they were filtered, what was ranked where, and
-— just as importantly — what was **never** a candidate at all. 27 of this
-repository's 116 Layer 1 assertions (23%) assert exactly that kind of
+— just as importantly — what was **never** a candidate at all. 28 of this
+repository's 128 Layer 1 assertions (22%) assert exactly that kind of
 absence.
 
 ### 2.3 Why a hybrid retrieval system specifically
@@ -191,7 +191,7 @@ network, and no credential.
 did. It defines the vocabulary the eval harness and this document both use —
 what a "candidate" is, what "degraded" means, which trace events are
 contract rather than diagnostics — twelve expected behaviours (B-1 through
-B-12), seven hard constraints (C-1 through C-7), and five judge rubrics.
+B-12), seven hard constraints (C-1 through C-7), and four judge rubrics.
 
 The rule this repository holds itself to: **a behaviour change starts in
 `docs/SPEC.md`, lands with its scenarios in the same pull request, and bumps
@@ -207,18 +207,18 @@ that shape: spec change, code change, and two new scenarios
 
 ### 6.1 Layer 1 — deterministic trace assertions
 
-116 assertions across 28 YAML scenarios in five classes (happy, ambiguity,
+128 assertions across 28 YAML scenarios in five classes (happy, ambiguity,
 exclusion, adversarial, degradation), run against the real pipeline
 in-process by `ScenarioRunner`. No model, no network, no credential — the
 gated path is deterministic by construction (`docs/SPEC.md` §8.2), so a
 failure is a failure, not a sample that might pass on retry. Constraint-gated
-scenarios (12 of them) hard-block at 100%; behaviour scenarios are measured
+scenarios (13 of them) hard-block at 100%; behaviour scenarios are measured
 against a recorded baseline (`evals/baselines/layer1.json`), and a regression
 is a fact, not a vibe.
 
 ### 6.2 Layer 2 — a rubric-anchored judge
 
-Five rubrics (`relevance`, `attribution-clarity`, `exclusion-honesty`,
+Four rubrics (`relevance`, `attribution-clarity`, `exclusion-honesty`,
 `degradation-honesty`), each a small ordinal scale with a written anchor per
 level — "rate this ranking 1–10" produces a number with no meaning to regress
 against, so it does not appear anywhere in this repository. The judge's
@@ -356,8 +356,8 @@ after acceptance — [`docs/adr/`](adr/):
 - **A claim without a measurement is marketing.** Every number in this
   document traces back to a file the eval suite itself produces or a
   document version-controlled alongside the code it describes.
-- **Absence is worth proving, not just presence.** 27 of 116 Layer 1
-  assertions (23%) assert that something never happened — never a candidate,
+- **Absence is worth proving, not just presence.** 28 of 128 Layer 1
+  assertions (22%) assert that something never happened — never a candidate,
   never in a response, never re-applied on replay.
 - **A test suite that has never failed is a suite nobody has tested.** The
   mutation pass exists because "the constraint scenarios pass" and "the
@@ -371,7 +371,7 @@ after acceptance — [`docs/adr/`](adr/):
 ## 13. Status and roadmap
 
 Complete, tested, and honestly documented as a proof of concept: the full
-pipeline, 116 Layer 1 assertions across 28 scenarios, the four-variant
+pipeline, 128 Layer 1 assertions across 28 scenarios, the four-variant
 mutation pass, and CI that runs all of it with zero credentials configured.
 Not complete, and not claimed to be, as a production service — [§9](#9-production-readiness-honestly).
 
