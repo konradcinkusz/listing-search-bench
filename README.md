@@ -1,8 +1,15 @@
 # listing-search-bench
 
-[![License](https://flat.badgen.net/static/License/MIT?icon=github&color=black&scale=1.01)](LICENSE "License")
+<a name="readme-top"></a>
+
+[![Ask me anything](https://flat.badgen.net/static/Ask%20me/anything?icon=github&color=black&scale=1.01)](https://github.com/konradcinkusz "Ask me anything")
+[![GitHub license](https://flat.badgen.net/github/license/konradcinkusz/listing-search-bench?icon=github&color=black&scale=1.01)](https://github.com/konradcinkusz/listing-search-bench/blob/main/LICENSE "GitHub license")
 [![Maintained](https://flat.badgen.net/static/Maintained/yes?icon=github&color=black&scale=1.01)](https://github.com/konradcinkusz/listing-search-bench/commits/main "Maintained")
-[![Docs](https://flat.badgen.net/static/Docs/architecture%20%26%20eval%20bench?icon=github&color=black&scale=1.01)](https://konradcinkusz.github.io/listing-search-bench/ "Docs")
+[![GitHub branches](https://flat.badgen.net/github/branches/konradcinkusz/listing-search-bench?icon=github&color=black&scale=1.01)](https://github.com/konradcinkusz/listing-search-bench/branches "GitHub branches")
+[![GitHub commits](https://flat.badgen.net/github/commits/konradcinkusz/listing-search-bench?icon=github&color=black&scale=1.01)](https://github.com/konradcinkusz/listing-search-bench/commits/main "GitHub commits")
+[![GitHub issues](https://flat.badgen.net/github/issues/konradcinkusz/listing-search-bench?icon=github&color=black&scale=1.01)](https://github.com/konradcinkusz/listing-search-bench/issues "GitHub issues")
+[![GitHub pull requests](https://flat.badgen.net/github/prs/konradcinkusz/listing-search-bench?icon=github&color=black&scale=1.01)](https://github.com/konradcinkusz/listing-search-bench/pulls "GitHub pull requests")
+[![CI](https://github.com/konradcinkusz/listing-search-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/konradcinkusz/listing-search-bench/actions/workflows/ci.yml "CI")
 
 **A spec-first evaluation bench for a hybrid search and ranking service.** A
 behaviour contract written before the pipeline existed, 28 scenarios stored as
@@ -20,6 +27,10 @@ to a different measuring problem: not "did an agent ask before it wrote", but "d
 a hybrid ranker respect hard business constraints even when a listing's own text
 tries to talk it out of them, and is it honest about when it degrades". The
 specimen changed; **the instrument's shape did not.**
+
+Read it as a page instead: **[the architecture and eval-bench walkthrough](https://konradcinkusz.github.io/listing-search-bench/)**
+— three tabs, no build step. Or as a PDF, English or Polish
+([§16](docs/OVERVIEW.md#16-getting-the-pdf)).
 
 ## What this is, in one picture
 
@@ -51,7 +62,7 @@ This repository is a proof of concept, built on a synthetic corpus as
 independent, public proof of methodology — not a deployed service, and not a
 contribution to any production codebase.
 
-<p align="right">(<a href="#listing-search-bench">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## What this repository demonstrates
 
@@ -67,7 +78,7 @@ contribution to any production codebase.
 | Event-driven architecture | `Ingestion/IngestionConsumer.cs` — the **only** write path, reading `listing.published` / `listing.price_changed` / `listing.delisted`, idempotent by `event_id` ([ADR-0006](docs/adr/0006-event-idempotency-at-the-consumer-boundary.md)) |
 | Data-ingestion pipelines | The ingestion pipeline end to end, exercised by `hap-006`, `hap-007`, `adv-002`, `deg-004` |
 
-<p align="right">(<a href="#listing-search-bench">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## The numbers
 
@@ -81,7 +92,7 @@ counts live.
 | **The write path** | Exactly one: `IngestionConsumer` | No HTTP route reaches `ISearchIndex.IndexAsync` or `DeleteAsync` any other way — checked by `NoHttpRouteReachesTheIndexTests`, not just stated |
 | **The mutation pass** | 4/4 caught, with a stated caveat | See [§4 of FINDINGS.md](docs/FINDINGS.md#4-the-mutation-pass) — caught on the first run, which is weaker evidence than it looks, and the document says so |
 
-<p align="right">(<a href="#listing-search-bench">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## The specimen: a hybrid search service with something to hide from
 
@@ -128,7 +139,7 @@ is that measurement, and the `rerank-boosts-flagged-text` mutation
 ([`docs/FINDINGS.md` §4](docs/FINDINGS.md#4-the-mutation-pass)) proves the
 scenario would fail if the claim ever stopped being true.
 
-<p align="right">(<a href="#listing-search-bench">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Run it
 
@@ -164,7 +175,7 @@ with nothing configured at all. Elasticsearch is opt-in for local development on
 (`docker-compose up`, then `--SearchIndex:Mode=Elasticsearch`); the reasoning is
 [ADR-0002](docs/adr/0002-mock-first-zero-credential-default.md).
 
-<p align="right">(<a href="#listing-search-bench">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Judge it without running it
 
@@ -183,7 +194,7 @@ Four files, in this order, are the whole idea:
    the honest caveat about what a same-session mutation pass does and does not
    prove.
 
-<p align="right">(<a href="#listing-search-bench">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Repository layout
 
@@ -214,7 +225,7 @@ k8s/              illustrative deployment manifests — not deployed (see docs/D
 docker-compose.yml   local Elasticsearch + Kibana, for development only
 ```
 
-<p align="right">(<a href="#listing-search-bench">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## How this repository relates to the standards
 
@@ -230,7 +241,7 @@ Where it must depart, the departure is recorded — dated, reasoned, with a clos
 condition — in [`docs/DEVIATIONS.md`](docs/DEVIATIONS.md), including what this
 repository does **not** inherit from the worked example it copies patterns from.
 
-<p align="right">(<a href="#listing-search-bench">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Non-goals
 
@@ -251,7 +262,7 @@ Stated so that scope creep has something to fail against.
   `IngestionConsumer`, reachable only from an ingestion event —
   [`docs/SPEC.md` §2.1](docs/SPEC.md#21-the-index-boundary).
 
-<p align="right">(<a href="#listing-search-bench">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## License
 
