@@ -12,8 +12,8 @@
 
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <AspireVersion>13.4.6</AspireVersion>
-    <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
+    <AspireVersion>13.5.3</AspireVersion>
+    <OpenTelemetryVersion>1.18.0</OpenTelemetryVersion>
     <ExtensionsVersion>10.9.0</ExtensionsVersion>
   </PropertyGroup>
 
@@ -40,7 +40,7 @@
       (ElasticsearchIndex.cs — ADR-1). Dev-only: no CI path constructs it, because no
       CI job has a cluster to point it at.
     -->
-    <PackageVersion Include="Elastic.Clients.Elasticsearch" Version="9.5.0" />
+    <PackageVersion Include="Elastic.Clients.Elasticsearch" Version="9.5.1" />
   </ItemGroup>
 
   <ItemGroup Label="Tests and evals">
