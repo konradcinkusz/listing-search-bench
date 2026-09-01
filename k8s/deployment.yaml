@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: homefinder-search
-  namespace: homefinder
+  name: listing-search
+  namespace: listing-search
   labels:
-    app: homefinder-search
+    app: listing-search
 spec:
   # Pinned to 1: IEventIdempotencyStore is in-memory per instance (ADR-0006), so N
   # replicas would each independently apply the same ingestion event — N
@@ -13,25 +13,25 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: homefinder-search
+      app: listing-search
   template:
     metadata:
       labels:
-        app: homefinder-search
+        app: listing-search
     spec:
       containers:
         - name: search-service
-          # Built from src/Homefinder.SearchService/Dockerfile — no registry is
+          # Built from src/ListingSearch.SearchService/Dockerfile — no registry is
           # wired to this repository, so this is a placeholder tag, not a
           # published image.
-          image: homefinder-search-service:latest
+          image: listing-search-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8080
           envFrom:
             - configMapRef:
-                name: homefinder-search-config
+                name: listing-search-config
           resources:
             requests:
               cpu: "100m"

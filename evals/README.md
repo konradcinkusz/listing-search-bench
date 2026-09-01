@@ -2,9 +2,9 @@
 
 Nothing under this directory is .NET-specific. `schema/`, `fixtures/`, `scenarios/`,
 `rubrics/`, `baselines/` and `calibration/` are YAML and JSON; the harness that reads
-them (`Homefinder.Evals/`) is one project, and mostly two files in it —
-[`Execution/ScenarioRunner.cs`](Homefinder.Evals/Execution/ScenarioRunner.cs) and
-[`Assertions/AssertionEvaluator.cs`](Homefinder.Evals/Assertions/AssertionEvaluator.cs).
+them (`ListingSearch.Evals/`) is one project, and mostly two files in it —
+[`Execution/ScenarioRunner.cs`](ListingSearch.Evals/Execution/ScenarioRunner.cs) and
+[`Assertions/AssertionEvaluator.cs`](ListingSearch.Evals/Assertions/AssertionEvaluator.cs).
 
 ## The tour
 
@@ -31,9 +31,9 @@ gate is actually checking.
 ## Running it
 
 ```bash
-dotnet test --project Homefinder.Evals                                          # everything
-dotnet test --project Homefinder.Evals --filter "FullyQualifiedName~Layer1Tests"    # scenarios only
-dotnet test --project Homefinder.Evals --filter "FullyQualifiedName~MutationTests"  # the mutation pass only
+dotnet test --project ListingSearch.Evals                                          # everything
+dotnet test --project ListingSearch.Evals --filter "FullyQualifiedName~Layer1Tests"    # scenarios only
+dotnet test --project ListingSearch.Evals --filter "FullyQualifiedName~MutationTests"  # the mutation pass only
 ```
 
 Corpus mechanics — fixture composition, fault injection, the trace-capture seam —

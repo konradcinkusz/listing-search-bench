@@ -6,7 +6,7 @@ with something concrete to review, not to claim a running deployment.
 
 | File | What it declares |
 |---|---|
-| [`namespace.yaml`](namespace.yaml) | The `homefinder` namespace |
+| [`namespace.yaml`](namespace.yaml) | The `listing-search` namespace |
 | [`configmap.yaml`](configmap.yaml) | Non-secret configuration — `SearchIndex__Mode`, ports |
 | [`deployment.yaml`](deployment.yaml) | The search service, 2 replicas, resource requests/limits, readiness/liveness against `/health` and `/alive` |
 | [`service.yaml`](service.yaml) | A `ClusterIP` service in front of the deployment |

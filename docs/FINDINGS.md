@@ -1,7 +1,7 @@
 # Findings — what the suite actually caught
 
 Numbers first, recomputed from the corpus itself rather than copied and left to go
-stale. Every count below is reproducible: `dotnet test --project evals/Homefinder.Evals`.
+stale. Every count below is reproducible: `dotnet test --project evals/ListingSearch.Evals`.
 
 ## 1. The suite, in numbers
 
@@ -13,7 +13,7 @@ stale. Every count below is reproducible: `dotnet test --project evals/Homefinde
 | Constraint-gated scenarios (100% required) | 13 |
 | Absence assertions (`result_excludes`, `candidate_set_excludes`, `event_not_emitted`) | 28 (22%) |
 | Mutation variants | 4 |
-| Unit tests (`Homefinder.SearchService.Tests`) | 53 |
+| Unit tests (`ListingSearch.SearchService.Tests`) | 53 |
 
 | Class | Scenarios | Assertions | Mean |
 |---|---|---|---|
@@ -100,7 +100,7 @@ apparatus, not in the thing being measured.
 All four variants were caught on the first run — every one of the twelve
 constraint-gated scenarios still passes with the real pipeline, and each targeted
 scenario fails once its one stage or consumer is swapped for a broken variant. Full
-detail: `evals/Homefinder.Evals/Mutations/BrokenStages.cs`; the wiring that swaps a
+detail: `evals/ListingSearch.Evals/Mutations/BrokenStages.cs`; the wiring that swaps a
 DI registration for its broken twin is `Mutations/BrokenPipeline.cs`.
 
 | Variant | Breaks | Caught by | Result |

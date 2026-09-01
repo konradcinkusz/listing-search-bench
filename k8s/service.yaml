@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: homefinder-search
-  namespace: homefinder
+  name: listing-search
+  namespace: listing-search
 spec:
   selector:
-    app: homefinder-search
+    app: listing-search
   ports:
     - name: http
       port: 80

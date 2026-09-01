@@ -355,7 +355,7 @@
         <div class="fact">
           <p class="k">the contract</p>
           <p class="v">12 behaviours · 7 hard constraints</p>
-          <p><code>docs/SPEC.md</code> was accepted before <code>Homefinder.SearchService</code> existed. B-1 through B-12, C-1 through C-7, five judge rubrics.</p>
+          <p><code>docs/SPEC.md</code> was accepted before <code>ListingSearch.SearchService</code> existed. B-1 through B-12, C-1 through C-7, four judge rubrics.</p>
         </div>
         <div class="fact">
           <p class="k">the evidence</p>
@@ -371,7 +371,7 @@
 
       <h2><span class="no">run it</span>Zero credentials is a designed property, not a temporary state</h2>
       <p>
-        <code>dotnet run --project src/Homefinder.AppHost</code> starts the service on the fixture
+        <code>dotnet run --project src/ListingSearch.AppHost</code> starts the service on the fixture
         catalogue; <code>dotnet test</code> runs the unit tests, Layer 1, the mutation pass and the
         judge machinery. No account, no container registry, no cloud subscription, no Elasticsearch
         cluster. The in-memory fixture index is the default (<code>SearchIndex:Mode=Fixture</code>);
@@ -394,12 +394,12 @@
 
       <h2><span class="no">the pieces</span>One filter, enforced once, and many witnesses</h2>
       <div class="pieces">
-        <div class="piece"><code>Homefinder.SearchService</code><span>The service: the five-stage ranking pipeline, the <code>ISearchIndex</code> seam, the ingestion consumer — the only write path — and OpenTelemetry instrumentation on every stage and every index call.</span></div>
-        <div class="piece"><code>Homefinder.AppHost</code><span>.NET Aspire composition root — development only, never containerised. One command brings the system up with nothing configured.</span></div>
-        <div class="piece"><code>Homefinder.ServiceDefaults</code><span>The kernel: OpenTelemetry, health checks, discovery, resilience — thin by rule.</span></div>
+        <div class="piece"><code>ListingSearch.SearchService</code><span>The service: the five-stage ranking pipeline, the <code>ISearchIndex</code> seam, the ingestion consumer — the only write path — and OpenTelemetry instrumentation on every stage and every index call.</span></div>
+        <div class="piece"><code>ListingSearch.AppHost</code><span>.NET Aspire composition root — development only, never containerised. One command brings the system up with nothing configured.</span></div>
+        <div class="piece"><code>ListingSearch.ServiceDefaults</code><span>The kernel: OpenTelemetry, health checks, discovery, resilience — thin by rule.</span></div>
         <div class="piece"><code>docs/SPEC.md</code><span>The behaviour contract — 12 behaviours, 7 hard constraints, 4 rubrics — written before the pipeline existed.</span></div>
         <div class="piece"><code>evals/</code><span>28 scenarios in five classes, a shared fictional catalogue plus per-scenario deltas, versioned rubrics, recorded baselines. All YAML and JSON — data, not code.</span></div>
-        <div class="piece"><code>evals/Homefinder.Evals</code><span>The harness: Layer 1 deterministic trace assertions, a Layer 2 rubric judge (never yet run against a live model — D-1), and the four-variant mutation pass. Never ships in a container.</span></div>
+        <div class="piece"><code>evals/ListingSearch.Evals</code><span>The harness: Layer 1 deterministic trace assertions, a Layer 2 rubric judge (never yet run against a live model — D-1), and the four-variant mutation pass. Never ships in a container.</span></div>
         <div class="piece"><code>k8s/ · docker-compose.yml</code><span>Illustrative deployment manifests and a local Elasticsearch + Kibana pair — neither has ever been applied against, or run inside, a real cluster (D-4, D-5).</span></div>
       </div>
       <p class="dim" style="margin-top:15px;">
@@ -450,7 +450,7 @@
 
           <rect class="boundary" x="40" y="110" width="840" height="520" rx="8"/>
           <rect class="band" x="41" y="111" width="838" height="34"/>
-          <text class="lbl-strong" x="56" y="132">Homefinder.SearchService · POST /search · GET /health · no write route</text>
+          <text class="lbl-strong" x="56" y="132">ListingSearch.SearchService · POST /search · GET /health · no write route</text>
           <text class="lbl" x="56" y="612">C-1 (never delisted) and C-2 (never past a filter) are enforced once — at filter construction</text>
           <text class="lbl" x="56" y="628">outcome is always exactly one of completed · degraded — never a silent timeout (C-4)</text>
 
@@ -733,7 +733,7 @@
 
       <h2><span class="no">honestly</span>What's real, and what's illustrative</h2>
       <p>
-        This is a POC written for a specific job application, not a deployed service. Exactly one
+        This is a proof of concept, not a deployed service. Exactly one
         thing in the estate below actually runs anywhere other than a laptop: the GitHub Actions
         CI workflow. Everything else — local Elasticsearch, Kubernetes manifests — is written down
         as illustrative, because it has never been applied against a real cluster, and the honest
@@ -867,7 +867,7 @@
       </p>
       <p class="dim">
         What replaces a live environment is the same suite CI runs, runnable by anyone with the
-        .NET 10 SDK and nothing else: <code>dotnet run --project src/Homefinder.AppHost</code> for
+        .NET 10 SDK and nothing else: <code>dotnet run --project src/ListingSearch.AppHost</code> for
         the service, <code>dotnet test</code> for everything that grades it.
       </p>
 

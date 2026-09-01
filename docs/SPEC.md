@@ -1,12 +1,12 @@
-# Homefinder Search Service — behaviour specification
+# The ListingSearch service — behaviour specification
 
-- **Service slug**: `homefinder-search-service`
+- **Service slug**: `listing-search-service`
 - **Spec version**: 1.1.0
 - **Status**: Accepted — this is the contract. Code is measured against it, not the other way round.
 - **Date**: 2026-08-17
 
 > **This document exists before the ranking pipeline does.** Nothing in
-> `Homefinder.SearchService` had been written when version 1.0.0 was accepted.
+> `ListingSearch.SearchService` had been written when version 1.0.0 was accepted.
 > That ordering is the method, not a scheduling accident: a ranking change gets
 > shipped the way a boost weight gets tuned — casually, in a config diff nobody
 > reviews as behaviour — and the spec is what makes such a change reviewable
@@ -309,7 +309,7 @@ does not do X" without saying what it does *instead* is an untested path.
 
 | # | Out of scope | Expected behaviour | Scenario |
 |---|---|---|---|
-| **O-1** | Writing to the index over HTTP | No such route exists. The only write path is `IngestionConsumer` | `NoHttpRouteReachesTheIndexTests` (`Homefinder.SearchService.Tests`) |
+| **O-1** | Writing to the index over HTTP | No such route exists. The only write path is `IngestionConsumer` | `NoHttpRouteReachesTheIndexTests` (`ListingSearch.SearchService.Tests`) |
 | **O-2** | A draft listing appearing to anyone but its owner | Draft listings are excluded from `AllowedStatuses` for every unauthenticated query; owner-scoped preview is out of scope for this POC | `exc-004` |
 | **O-3** | Personalised ranking (user history, saved searches) | Every query is scored identically regardless of who asks; no per-user signal exists in the pipeline | *(design-level; unasserted — no personalisation code path exists to test)* |
 | **O-4** | Spelling correction / fuzzy query rewriting | A misspelled query is scored on the tokens as given; no query-rewrite stage exists | *(design-level; unasserted — see [D-8](DEVIATIONS.md))* |
@@ -466,8 +466,8 @@ Written down because an assumption nobody stated is a defect nobody can find.
   exercise every structural property this specification tests, and named
   as a simplification rather than presented as production-grade relevance
   tuning.
-- **The corpus is on the order of tens of listings, not comparis's actual
-  scale.** [D-2](DEVIATIONS.md).
+- **The corpus is on the order of tens of listings, not production scale.**
+  [D-2](DEVIATIONS.md).
 - **No spelling correction or query rewriting.** [D-8](DEVIATIONS.md) and
   [§6](#6-out-of-scope) O-4.
 
