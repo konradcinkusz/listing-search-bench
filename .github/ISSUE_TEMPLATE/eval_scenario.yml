@@ -1,0 +1,115 @@
+name: Eval scenario
+description: Propose a new scenario, or convert an observed failure into one.
+title: "eval: "
+labels: ["eval-scenario", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Every incident becomes a scenario before it becomes a fix.**
+        (AI-EVALS.md §3, applying the P13 characterisation-test rule to ranking behaviour.)
+
+        The scenario reproduces the failure, the fix makes it pass, and the regression
+        net grows the only way regression nets honestly grow. Filing this issue is the
+        first half of that; the scenario file under `evals/scenarios/` is the second.
+
+  - type: dropdown
+    id: class
+    attributes:
+      label: Scenario class
+      description: >-
+        The five classes this suite carries, one directory each under
+        `evals/scenarios/`. If a scenario fits none of them, that is worth saying —
+        it may mean the class list needs a sixth entry.
+      options:
+        - Happy — a behaviour the spec promises
+        - Ambiguity — an underspecified query; expect a defensible resolution, recorded on the trace
+        - Exclusion — a listing that must never surface, on either retrieval path
+        - Adversarial — a listing whose own text argues for its rank
+        - Degradation — index timeout, shard unavailable, partial results
+    validations:
+      required: true
+
+  - type: textarea
+    id: origin
+    attributes:
+      label: Where this came from
+      description: >-
+        A production trace, a manual query, a code review, or "designed". Scenarios
+        that came from a real failure are worth more than invented ones — say which
+        this is. Today every scenario in the corpus is `designed` (D-5); the first
+        `production-trace` one would be a milestone worth noting here.
+    validations:
+      required: true
+
+  - type: textarea
+    id: request
+    attributes:
+      label: The request
+      description: The search request or ingestion event, verbatim.
+      render: yaml
+      placeholder: |
+        search:
+          query: "helle wohnung mit balkon"
+          maxPrice: 2200
+          city: "Zürich"
+    validations:
+      required: true
+
+  - type: textarea
+    id: fixture
+    attributes:
+      label: Fixture state
+      description: >-
+        The catalogue the pipeline sees — the listings that matter and why, including
+        their status, price and the text fields the ranker reads. A scenario writes a
+        delta over `evals/fixtures/zurich-catalogue.yaml` rather than a second copy of
+        the corpus (SPEC §8.3).
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected trace properties
+      description: >-
+        Assert over the trace, not the response text (ADR-0003). State both halves for
+        an exclusion: the listing's absence from the response **and** its absence from
+        the candidate set on *both* retrieval paths — two assertions, not one. An
+        absence nobody asserted is an absence nobody proved.
+      placeholder: |
+        - candidate_set_excludes: { listing: lst-014, path: lexical }
+        - candidate_set_excludes: { listing: lst-014, path: vector }
+        - result_excludes: lst-014
+        - event_emitted: filter.rejected
+      render: yaml
+    validations:
+      required: true
+
+  - type: input
+    id: rubrics
+    attributes:
+      label: Applicable rubric ids
+      description: Which Layer-2 criteria apply, if any. Leave blank for pure constraint scenarios.
+      placeholder: relevance, exclusion-honesty
+
+  - type: checkboxes
+    id: gate
+    attributes:
+      label: Gating
+      options:
+        - label: >-
+            This is a CONSTRAINT scenario — it must pass at 100% and hard-blocks the
+            merge when it fails.
+        - label: >-
+            This is a BEHAVIOUR scenario — it is measured against
+            `evals/baselines/layer1.json`.
+
+  - type: checkboxes
+    id: hygiene
+    attributes:
+      label: Before submitting
+      options:
+        - label: The fixture data is synthetic. No real listing, owner, or address appears in it.
+          required: true

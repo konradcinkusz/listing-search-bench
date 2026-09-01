@@ -1,0 +1,105 @@
+# .gitattributes — real rules, not a commented-out template.
+#
+# REPO-BASELINE.md §1 names "the stock template with every rule commented out" as
+# decoration rather than configuration. Everything below is active.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Line endings
+# ─────────────────────────────────────────────────────────────────────────────
+# Normalize to LF in the repository; check out per the platform default for text.
+* text=auto eol=lf
+
+# Files that MUST keep LF on every platform (shell scripts, container files, and
+# anything a Linux container executes). A CRLF here is the classic
+# "/bin/bash^M: bad interpreter" failure.
+*.sh              text eol=lf
+*.bash            text eol=lf
+Dockerfile        text eol=lf
+Dockerfile.*      text eol=lf
+*.dockerfile      text eol=lf
+.gitattributes    text eol=lf
+.gitignore        text eol=lf
+.dockerignore     text eol=lf
+.editorconfig     text eol=lf
+*.yml             text eol=lf
+*.yaml            text eol=lf
+*.toml            text eol=lf
+*.mjs             text eol=lf
+
+# Files that MUST keep CRLF (Windows-only tooling that chokes on LF). No such file
+# exists here today; the rules are preventive, so the first one to land arrives
+# with the right endings rather than being fixed after a failure.
+*.bat             text eol=crlf
+*.cmd             text eol=crlf
+*.ps1             text eol=crlf
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Diff drivers — make `git diff` readable for the formats this repo lives in
+# ─────────────────────────────────────────────────────────────────────────────
+*.cs              text diff=csharp
+*.csproj          text
+*.props           text
+*.targets         text
+*.slnx            text
+*.md              text diff=markdown
+*.json            text
+*.jsonc           text
+*.html            text diff=html
+*.css             text diff=css
+*.tex             text diff=tex
+*.mmd             text
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Binary — never diffed, never line-ending-normalized
+# ─────────────────────────────────────────────────────────────────────────────
+*.png             binary
+*.jpg             binary
+*.jpeg            binary
+*.gif             binary
+*.ico             binary
+*.webp            binary
+*.pdf             binary
+*.zip             binary
+*.gz              binary
+*.dll             binary
+*.exe             binary
+*.pdb             binary
+*.woff            binary
+*.woff2           binary
+*.ttf             binary
+*.otf             binary
+
+# ─────────────────────────────────────────────────────────────────────────────
+# linguist — keep the language chip honest.
+#
+# This repository's centre of gravity is the eval artifacts (YAML scenarios, JSON
+# rubrics and baselines, the Markdown spec) and the two LaTeX papers. Those are the
+# product. Without these rules GitHub would report the repo as overwhelmingly C#
+# and a visitor would look for the wrong thing.
+# ─────────────────────────────────────────────────────────────────────────────
+evals/**             linguist-detectable
+evals/**             linguist-documentation=false
+docs/**              linguist-documentation
+docs/diagrams/**     linguist-detectable
+*.md                 linguist-detectable
+
+**/bin/**            linguist-generated
+**/obj/**            linguist-generated
+**/node_modules/**   linguist-vendored
+package-lock.json    linguist-generated
+
+# ─────────────────────────────────────────────────────────────────────────────
+# export-ignore — kept out of `git archive` tarballs
+# ─────────────────────────────────────────────────────────────────────────────
+.github/          export-ignore
+.claude/          export-ignore
+.gitattributes    export-ignore
+.gitignore        export-ignore
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Merge strategy
+# ─────────────────────────────────────────────────────────────────────────────
+# The Layer 1 baseline is a machine-generated record of a measured run. A textual
+# merge of two baselines produces a file that describes no run that ever happened,
+# so conflicts here must be resolved by re-recording, never by picking hunks.
+evals/baselines/*.json  merge=binary

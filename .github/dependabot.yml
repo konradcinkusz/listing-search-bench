@@ -1,0 +1,96 @@
+# Dependabot — dependency updates that do not depend on anyone remembering.
+#
+# REPO-BASELINE.md §1: "Vulnerable pins nobody owns; the 'we'll update later' that
+# never comes." Three ecosystems live in this repository:
+#
+#   nuget           — the .NET solution; every version is declared in
+#                     Directory.Packages.props, so a bump is a one-line diff there.
+#   github-actions  — pinned action versions in .github/workflows/.
+#   npm             — repo tooling only (markdownlint, the scenario/fixture schema
+#                     validators, and the mermaid CLI the papers render through).
+#                     Nothing here ships in any container; it is still scanned.
+#
+# Grouping policy: patch and minor updates arrive as one PR per ecosystem per week,
+# because a stream of single-package PRs is a stream nobody reviews. Major updates
+# arrive alone — they are the ones that need a human to read the changelog.
+
+version: 2
+
+updates:
+  # ─── .NET packages (central package management) ─────────────────────────────
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Warsaw
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope
+    labels:
+      - dependencies
+      - dotnet
+    groups:
+      dotnet-minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+      dotnet-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    ignore:
+      # The TFM is pinned in Directory.Build.props and global.json. Framework major
+      # moves are a deliberate migration, not a dependency bump.
+      - dependency-name: "Microsoft.NETCore.App.Ref"
+        update-types: ["version-update:semver-major"]
+
+  # ─── GitHub Actions ─────────────────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Warsaw
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(ci)"
+      include: scope
+    labels:
+      - dependencies
+      - ci
+    groups:
+      actions-minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+
+  # ─── Repo tooling (lint, schema validation, diagram rendering) ──────────────
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+      time: "06:00"
+      timezone: Europe/Warsaw
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps-dev)"
+      include: scope
+    labels:
+      - dependencies
+      - tooling
+    groups:
+      lint-tooling:
+        patterns:
+          - "*"
+    ignore:
+      # mermaid-cli drives a headless Chromium and its major versions have changed
+      # rendering output before. A major bump re-renders every figure in both
+      # papers, so it is reviewed deliberately rather than grouped with lint bumps.
+      - dependency-name: "@mermaid-js/mermaid-cli"
+        update-types: ["version-update:semver-major"]

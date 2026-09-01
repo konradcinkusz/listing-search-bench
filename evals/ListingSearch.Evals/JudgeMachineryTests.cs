@@ -1,7 +1,6 @@
 using ListingSearch.Evals.Execution;
 using ListingSearch.Evals.Judging;
 using ListingSearch.Evals.Judging.Llm;
-using ListingSearch.Evals.Reporting;
 
 namespace ListingSearch.Evals;
 

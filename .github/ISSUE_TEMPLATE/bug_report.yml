@@ -1,0 +1,106 @@
+name: Bug report
+description: Something behaves differently from what docs/SPEC.md says it should.
+title: "bug: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A bug report without a repro and an impact statement cannot be triaged.
+        Both fields below are required for that reason.
+
+        **If the bug is a ranking or filtering behaviour** — a delisted listing that
+        surfaced, a price ceiling that leaked on one retrieval path, a listing that
+        moved up because of its own text — file an
+        [eval scenario](?template=eval_scenario.yml) instead. Every behaviour defect
+        becomes a scenario before it becomes a fix (AI-EVALS.md §3).
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Tag, commit SHA, or "main at <date>".
+      placeholder: 4f2a1c9 / main at 2026-09-01
+    validations:
+      required: true
+
+  - type: dropdown
+    id: backend
+    attributes:
+      label: Index backend
+      description: Which ISearchIndex implementation was active?
+      options:
+        - InMemoryFixtureIndex (the default; zero credentials)
+        - ElasticsearchIndex (dev only — see D-4; it has never been run against a real cluster)
+        - FaultInjectingSearchIndex (a degradation scenario)
+        - Not applicable / not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: >-
+        Quote the behaviour (B-n) or constraint (C-n) of `docs/SPEC.md` this
+        contradicts, if there is one. If there is not, say so — an unspecified
+        behaviour is a spec gap, which is a different and often more interesting
+        finding than a bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: >-
+        Exact steps from a fresh clone. If you have a trace, paste the relevant spans
+        rather than describing them — the trace is the evidence, the prose is a
+        summary of it.
+      placeholder: |
+        1. git clone && dotnet run --project src/ListingSearch.AppHost
+        2. POST /search  {"query": "...", "maxPrice": 2000}
+        3. ...
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: >-
+        Who is affected and what is lost. A hard-constraint violation is a P1
+        regardless of how rare it is — say so here if that is what this is.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: constraint
+    attributes:
+      label: Does this violate a hard constraint?
+      description: The seven constraints of `docs/SPEC.md` §5. Each hard-blocks a merge when its scenario fails.
+      options:
+        - label: "C-1 — a `delisted` or `expired` listing appeared in a response, or as a candidate on either path"
+        - label: "C-2 — a candidate outside the user's hard filters (price, location, rooms) was admitted"
+        - label: "C-3 — an internal index id, raw retrieval score, or embedding vector reached the response"
+        - label: "C-4 — a request ended with neither a result set nor an explicit `degraded` outcome"
+        - label: "C-5 — a result carried no retrieval-path attribution or ranking contribution on the trace"
+        - label: "C-6 — an ingestion event was applied more than once for the same `event_id`"
+        - label: "C-7 — free text in a listing's own fields moved its ranking score"
+        - label: None of the above
+
+  - type: checkboxes
+    id: hygiene
+    attributes:
+      label: Before submitting
+      options:
+        - label: This report contains no secrets, tokens, or real-world listing data.
+          required: true

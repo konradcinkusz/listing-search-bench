@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using ListingSearch.Service.Search;
 using ListingSearch.Service.Telemetry;
 
 namespace ListingSearch.Evals.Execution;

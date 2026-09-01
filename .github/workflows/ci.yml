@@ -54,6 +54,52 @@ jobs:
           path: "**/TestResults/*.trx"
           if-no-files-found: warn
 
+  dependency-audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # REPO-BASELINE.md §1 pairs SAST with a dependency audit: "vulnerable pins
+      # nobody owns". Dependabot opens PRs for updates; this job is the other half
+      # — it fails the build while a known-vulnerable package is still pinned,
+      # rather than waiting for someone to merge the bot's PR.
+      #
+      # The gotcha this handles: `dotnet list package --vulnerable` exits 0 whether
+      # or not it found anything. Grepping its output is the only way to gate on it.
+      - name: NuGet packages, including transitive
+        run: |
+          set -euo pipefail
+          dotnet restore ListingSearch.slnx
+          report=$(dotnet list ListingSearch.slnx package --vulnerable --include-transitive)
+          echo "$report"
+          if echo "$report" | grep -q "has the following vulnerable packages"; then
+            echo "::error::Vulnerable NuGet package(s) found — see the report above."
+            exit 1
+          fi
+          echo "No vulnerable NuGet packages."
+
+      # npm here is repo tooling only (lint, schema validation, the mermaid CLI the
+      # papers render through). Nothing it pulls ships in a container, so the gate is
+      # set at 'high' rather than 'low': a moderate advisory in a dev-only markdown
+      # linter is not worth blocking a documentation fix over.
+      - name: npm tooling
+        run: |
+          set -euo pipefail
+          npm ci
+          npm audit --audit-level=high
+
   secret-scan:
     name: Secret scan
     runs-on: ubuntu-latest

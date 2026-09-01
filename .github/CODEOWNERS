@@ -1,0 +1,44 @@
+# CODEOWNERS — who must review what.
+#
+# REPO-BASELINE.md §1: the failure this prevents is "security-relevant paths merged
+# without the right reviewer". Ownership is stated per path rather than repo-wide so
+# that adding a second maintainer later is a one-line change per area, not a rewrite.
+#
+# Syntax: last matching pattern wins. The catch-all is therefore first.
+
+# ─── Everything ──────────────────────────────────────────────────────────────
+*                               @konradcinkusz
+
+# ─── The eval contract ───────────────────────────────────────────────────────
+# The spec, the scenarios and the rubrics are the specification this repository
+# exists to demonstrate. A change to any of them is a change to what "working"
+# means, and is reviewed as such — never as a test-data tweak.
+/docs/SPEC.md                   @konradcinkusz
+/evals/                         @konradcinkusz
+/evals/scenarios/               @konradcinkusz
+/evals/rubrics/                 @konradcinkusz
+
+# Baselines record measured state. A hand-edited baseline is how a regression gets
+# merged as an "expected change", so this path is called out on its own.
+/evals/baselines/               @konradcinkusz
+
+# Fixtures are the corpus every scenario reasons about. A silent edit here moves
+# the ground under every assertion at once.
+/evals/fixtures/                @konradcinkusz
+
+# ─── The pipeline the contract describes ─────────────────────────────────────
+# The ranking stages and the index seam are where a constraint is actually kept
+# or broken (SPEC C-1 through C-7).
+/src/ListingSearch.Service/Pipeline/     @konradcinkusz
+/src/ListingSearch.Service/Search/       @konradcinkusz
+/src/ListingSearch.Service/Ingestion/    @konradcinkusz
+
+# ─── Security-relevant configuration ─────────────────────────────────────────
+/.github/workflows/             @konradcinkusz
+/.github/CODEOWNERS             @konradcinkusz
+/.github/dependabot.yml         @konradcinkusz
+/.claude/                       @konradcinkusz
+
+# ─── Architecture decisions ──────────────────────────────────────────────────
+/docs/adr/                      @konradcinkusz
+/docs/DEVIATIONS.md             @konradcinkusz

@@ -1,0 +1,92 @@
+name: CodeQL
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Static analysis. REPO-BASELINE.md §1: "Static analysis exists only when a
+#  human remembers to run it."
+#
+#  C# only. The repository's other executable code is four .mjs files under
+#  scripts/ — repo tooling that never ships in a container and reads only files
+#  already in the tree. Adding a second language would double the run for a
+#  surface that is not exposed to anything.
+#
+#  The visibility guard: GitHub code scanning needs Advanced Security on a private
+#  repository. This one is public, so the guard is inert today. It stays as a
+#  safety net rather than being deleted, so a future return to private degrades to
+#  a documented skip instead of a permanently red required check — and a
+#  permanently red check trains everyone to ignore red checks, which costs more
+#  than the analysis buys.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, 'claude/**']
+  schedule:
+    # Mondays 04:00 UTC. Rule sets change under a codebase that has not.
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze C#
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Is code scanning available here?
+        id: gate
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event.repository.private }}" = "true" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## CodeQL: SKIPPED"
+              echo
+              echo "This repository is private, and code scanning requires GitHub Advanced"
+              echo "Security on a private repository. The workflow is committed and reviewed;"
+              echo "it starts analysing on the first push after the repository becomes public,"
+              echo "with no change to this file."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::notice::CodeQL skipped — private repository without Advanced Security."
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Initialize CodeQL
+        if: steps.gate.outputs.available == 'true'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+          queries: security-and-quality
+
+      - uses: actions/setup-dotnet@v4
+        if: steps.gate.outputs.available == 'true'
+        with:
+          global-json-file: global.json
+
+      - name: Build for analysis
+        if: steps.gate.outputs.available == 'true'
+        # CodeQL needs a real build. Analysis of a project that did not compile is
+        # analysis of nothing, reported as a pass.
+        run: dotnet build ListingSearch.slnx --configuration Release
+
+      - name: Perform CodeQL analysis
+        if: steps.gate.outputs.available == 'true'
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:csharp

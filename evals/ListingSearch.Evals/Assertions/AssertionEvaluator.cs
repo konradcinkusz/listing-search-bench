@@ -4,7 +4,6 @@ using ListingSearch.Evals.Execution;
 using ListingSearch.Evals.Scenarios;
 using ListingSearch.Service.Ingestion;
 using ListingSearch.Service.Search;
-using ListingSearch.Service.Telemetry;
 
 namespace ListingSearch.Evals.Assertions;
 
