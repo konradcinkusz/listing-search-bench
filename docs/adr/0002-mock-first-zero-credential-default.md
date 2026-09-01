@@ -15,7 +15,7 @@ repository's suite: everyone, or only someone who first stands up infrastructure
 ## Decision
 
 `SearchIndex:Mode` defaults to `Fixture`, never `Elasticsearch`. `dotnet test
---project evals/Homefinder.Evals` runs the entire Layer 1 corpus and mutation pass
+--project evals/ListingSearch.Evals` runs the entire Layer 1 corpus and mutation pass
 against `InMemoryFixtureIndex` with no cluster, no network call, and no credential of
 any kind. `SearchIndexFactory` falls back to the fixture index with a logged warning
 if `Mode=Elasticsearch` is set without `ElasticsearchUri` (P8), rather than failing
@@ -58,7 +58,7 @@ behaviour, latency, or shard failure modes at scale — `docs/DEVIATIONS.md` D-2
 D-4 state this rather than letting a green suite imply it.
 
 **What we accept:** `FaultInjectingSearchIndex` simulates degradation
-(`evals/Homefinder.Evals/World/FaultInjectingSearchIndex.cs`) rather than observing
+(`evals/ListingSearch.Evals/World/FaultInjectingSearchIndex.cs`) rather than observing
 it on a real cluster with real shard topology.
 
 ## Revisit when

@@ -42,7 +42,7 @@ committed to this repository.
 ## 1. Executive summary
 
 A user searches a catalogue of real-estate listings — free text plus
-structured filters (price, city, rooms) — and `Homefinder.SearchService`
+structured filters (price, city, rooms) — and `ListingSearch.SearchService`
 returns a ranked result set built by combining two independent retrieval
 paths: lexical (BM25-style term overlap) and dense-vector similarity. Full-text
 search over a document store is solved. What this repository is actually
@@ -186,7 +186,7 @@ network, and no credential.
 
 ## 5. The spec-first workflow
 
-`docs/SPEC.md` existed before a single line of `Homefinder.SearchService`
+`docs/SPEC.md` existed before a single line of `ListingSearch.SearchService`
 did. It defines the vocabulary the eval harness and this document both use —
 what a "candidate" is, what "degraded" means, which trace events are
 contract rather than diagnostics — twelve expected behaviours (B-1 through

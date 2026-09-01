@@ -64,7 +64,7 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Package and repository metadata">
-    <Product>Homefinder Search Service</Product>
+    <Product>ListingSearch</Product>
     <Company>listing-search-bench</Company>
     <Authors>Konrad Cinkusz</Authors>
     <Copyright>Copyright (c) 2026 Konrad Cinkusz</Copyright>

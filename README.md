@@ -57,7 +57,7 @@ contribution to any production codebase.
 
 | Capability | Where it lives |
 |---|---|
-| .NET Core / ASP.NET, REST APIs, microservices | `src/Homefinder.SearchService` — one deployable .NET 10 minimal-API service |
+| .NET Core / ASP.NET, REST APIs, microservices | `src/ListingSearch.SearchService` — one deployable .NET 10 minimal-API service |
 | SQL Server and Cosmos DB–style stores for application data | `IListingCatalog` (`Ingestion/ListingCatalog.cs`) — the transactional system of record `IngestionConsumer` reads and patches — is the seam a SQL Server–backed implementation would fill; `ISearchIndex` is the denormalised, read-optimised projection a Cosmos DB–style store would back in production |
 | Search functionality built on Elasticsearch | The whole core: `Pipeline/Stages/*`, `Search/ISearchIndex.cs`, `Search/Elasticsearch/ElasticsearchIndex.cs` |
 | Docker and Kubernetes | `docker-compose.yml` (local Elasticsearch + Kibana); `k8s/` (illustrative deployment manifests) |
@@ -76,7 +76,7 @@ counts live.
 
 | | | |
 |---|---|---|
-| **The contract** | 12 behaviours · 7 hard constraints · 5 rubrics | [`docs/SPEC.md`](docs/SPEC.md), written before `src/Homefinder.SearchService` existed |
+| **The contract** | 12 behaviours · 7 hard constraints · 5 rubrics | [`docs/SPEC.md`](docs/SPEC.md), written before `src/ListingSearch.SearchService` existed |
 | **The evidence** | 28 scenarios · 128 assertions | 28 of them (22%) assert **absence** — that a listing was never a candidate, never in a response, never re-applied |
 | **The write path** | Exactly one: `IngestionConsumer` | No HTTP route reaches `ISearchIndex.IndexAsync` or `DeleteAsync` any other way — checked by `NoHttpRouteReachesTheIndexTests`, not just stated |
 | **The mutation pass** | 4/4 caught, with a stated caveat | See [§4 of FINDINGS.md](docs/FINDINGS.md#4-the-mutation-pass) — caught on the first run, which is weaker evidence than it looks, and the document says so |
@@ -85,8 +85,8 @@ counts live.
 
 ## The specimen: a hybrid search service with something to hide from
 
-A bench needs something to measure. This one measures the **Homefinder Search
-Service**: `POST /search` against a synthetic Swiss real-estate catalogue, in
+A bench needs something to measure. This one measures the **ListingSearch
+service**: `POST /search` against a synthetic Swiss real-estate catalogue, in
 French, German and English, ranked by combining lexical (BM25-style term overlap)
 and dense-vector retrieval — chosen because a hybrid system concentrates the exact
 failure mode a single-path search engine cannot have: **two independent code paths
@@ -141,7 +141,7 @@ Elasticsearch cluster.
 git clone https://github.com/konradcinkusz/listing-search-bench.git
 cd listing-search-bench
 
-dotnet run --project src/Homefinder.AppHost      # the service, on the fixture catalogue
+dotnet run --project src/ListingSearch.AppHost      # the service, on the fixture catalogue
 ```
 
 The AppHost prints a URL for the search service; `POST /search` with a JSON body
@@ -173,7 +173,7 @@ Four files, in this order, are the whole idea:
    a delisted listing engineered to score *higher* than the active one it
    duplicates, and the double assertion (absent from the response, absent from
    either retrieval path's candidate set) that catches it either way.
-1. [`Pipeline/Stages/HybridRankerStage.cs`](src/Homefinder.SearchService/Pipeline/Stages/HybridRankerStage.cs) —
+1. [`Pipeline/Stages/HybridRankerStage.cs`](src/ListingSearch.SearchService/Pipeline/Stages/HybridRankerStage.cs) —
    why a ranking-manipulation finding can be reported but structurally cannot
    change a score.
 1. [`docs/FINDINGS.md`](docs/FINDINGS.md) — what the suite actually caught, including
@@ -186,11 +186,11 @@ Four files, in this order, are the whole idea:
 
 ```text
 src/
-  Homefinder.AppHost          composition root — dev only, never containerised
-  Homefinder.ServiceDefaults  the kernel: OTel, health, discovery, resilience
-  Homefinder.SearchService    the service — pipeline, index seam, ingestion, telemetry
+  ListingSearch.AppHost          composition root — dev only, never containerised
+  ListingSearch.ServiceDefaults  the kernel: OTel, health, discovery, resilience
+  ListingSearch.SearchService    the service — pipeline, index seam, ingestion, telemetry
 tests/
-  Homefinder.SearchService.Tests   unit and HTTP-surface tests
+  ListingSearch.SearchService.Tests   unit and HTTP-surface tests
 evals/
   schema/       the scenario and fixture contracts, as strict JSON Schema
   fixtures/     the shared fictional catalogue; scenarios write only the delta
@@ -198,7 +198,7 @@ evals/
   rubrics/      versioned judge prompt and rubrics
   calibration/  append-only human labels (currently empty — D-1)
   baselines/    recorded pass state a regression is measured against
-  Homefinder.Evals   the eval harness itself — never ships in a container
+  ListingSearch.Evals   the eval harness itself — never ships in a container
 docs/
   SPEC.md         the behaviour contract
   FINDINGS.md     what the evals actually caught, in numbers
