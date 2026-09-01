@@ -132,7 +132,7 @@ had in mind while writing them.** Closing that gap is [D-7](DEVIATIONS.md).
   recalling a genuine match" ([`amb-002`](../evals/scenarios/ambiguity/amb-002-vector-path-recalls-what-lexical-misses.yaml))
   is a claim about a deterministic hash function, not about semantic search quality
   generally — [D-1](DEVIATIONS.md).
-- **No corpus at production scale.** 26 scenarios run against a ~20-listing fixture.
+- **No corpus at production scale.** 28 scenarios run against a ~20-listing fixture.
   Nothing here has been measured against the tens or hundreds of thousands of
   listings a real deployment would carry — [D-2](DEVIATIONS.md).
 - **No real ingestion traffic.** Every ingestion event in this repository was
