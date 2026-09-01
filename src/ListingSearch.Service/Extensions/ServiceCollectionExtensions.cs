@@ -6,10 +6,6 @@ using ListingSearch.Service.Pipeline.Embedding;
 using ListingSearch.Service.Pipeline.Stages;
 using ListingSearch.Service.Search;
 using ListingSearch.Service.Search.Fixtures;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ListingSearch.Service.Extensions;

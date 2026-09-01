@@ -1,7 +1,6 @@
 using ListingSearch.Service.Pipeline.Embedding;
 using ListingSearch.Service.Search.Elasticsearch;
 using ListingSearch.Service.Search.Fixtures;
-using Microsoft.Extensions.Logging;
 
 namespace ListingSearch.Service.Search;
 

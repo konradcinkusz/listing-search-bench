@@ -1,8 +1,5 @@
 using ListingSearch.Service.Pipeline;
 using ListingSearch.Service.Search;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 
 namespace ListingSearch.Service.Endpoints;
 
