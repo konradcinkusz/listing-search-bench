@@ -40,8 +40,8 @@ jobs:
       - name: Build
         run: dotnet build ListingSearch.slnx --no-restore --configuration Release
 
-      - name: Test — ListingSearch.SearchService.Tests (unit + HTTP surface)
-        run: dotnet test --project tests/ListingSearch.SearchService.Tests/ListingSearch.SearchService.Tests.csproj --no-build --configuration Release --report-trx
+      - name: Test — ListingSearch.Service.Tests (unit + HTTP surface)
+        run: dotnet test --project tests/ListingSearch.Service.Tests/ListingSearch.Service.Tests.csproj --no-build --configuration Release --report-trx
 
       - name: Test — ListingSearch.Evals (Layer 1, mutation pass, judge machinery)
         run: dotnet test --project evals/ListingSearch.Evals/ListingSearch.Evals.csproj --no-build --configuration Release --report-trx

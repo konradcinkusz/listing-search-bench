@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using ListingSearch.Evals.Scenarios;
-using ListingSearch.SearchService.Search;
-using ListingSearch.SearchService.Telemetry;
+using ListingSearch.Service.Search;
+using ListingSearch.Service.Telemetry;
 
 namespace ListingSearch.Evals.World;
 

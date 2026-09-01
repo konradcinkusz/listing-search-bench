@@ -1,6 +1,6 @@
 using ListingSearch.Evals.Scenarios;
-using ListingSearch.SearchService.Search;
-using ListingSearch.SearchService.Search.Fixtures;
+using ListingSearch.Service.Search;
+using ListingSearch.Service.Search.Fixtures;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 

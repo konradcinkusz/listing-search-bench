@@ -13,7 +13,7 @@ stale. Every count below is reproducible: `dotnet test --project evals/ListingSe
 | Constraint-gated scenarios (100% required) | 13 |
 | Absence assertions (`result_excludes`, `candidate_set_excludes`, `event_not_emitted`) | 28 (22%) |
 | Mutation variants | 4 |
-| Unit tests (`ListingSearch.SearchService.Tests`) | 53 |
+| Unit tests (`ListingSearch.Service.Tests`) | 53 |
 
 | Class | Scenarios | Assertions | Mean |
 |---|---|---|---|

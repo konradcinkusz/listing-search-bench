@@ -6,7 +6,7 @@
 - **Date**: 2026-08-17
 
 > **This document exists before the ranking pipeline does.** Nothing in
-> `ListingSearch.SearchService` had been written when version 1.0.0 was accepted.
+> `ListingSearch.Service` had been written when version 1.0.0 was accepted.
 > That ordering is the method, not a scheduling accident: a ranking change gets
 > shipped the way a boost weight gets tuned — casually, in a config diff nobody
 > reviews as behaviour — and the spec is what makes such a change reviewable
@@ -309,7 +309,7 @@ does not do X" without saying what it does *instead* is an untested path.
 
 | # | Out of scope | Expected behaviour | Scenario |
 |---|---|---|---|
-| **O-1** | Writing to the index over HTTP | No such route exists. The only write path is `IngestionConsumer` | `NoHttpRouteReachesTheIndexTests` (`ListingSearch.SearchService.Tests`) |
+| **O-1** | Writing to the index over HTTP | No such route exists. The only write path is `IngestionConsumer` | `NoHttpRouteReachesTheIndexTests` (`ListingSearch.Service.Tests`) |
 | **O-2** | A draft listing appearing to anyone but its owner | Draft listings are excluded from `AllowedStatuses` for every unauthenticated query; owner-scoped preview is out of scope for this POC | `exc-004` |
 | **O-3** | Personalised ranking (user history, saved searches) | Every query is scored identically regardless of who asks; no per-user signal exists in the pipeline | *(design-level; unasserted — no personalisation code path exists to test)* |
 | **O-4** | Spelling correction / fuzzy query rewriting | A misspelled query is scored on the tokens as given; no query-rewrite stage exists | *(design-level; unasserted — see [D-8](DEVIATIONS.md))* |

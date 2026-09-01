@@ -355,7 +355,7 @@
         <div class="fact">
           <p class="k">the contract</p>
           <p class="v">12 behaviours · 7 hard constraints</p>
-          <p><code>docs/SPEC.md</code> was accepted before <code>ListingSearch.SearchService</code> existed. B-1 through B-12, C-1 through C-7, five judge rubrics.</p>
+          <p><code>docs/SPEC.md</code> was accepted before <code>ListingSearch.Service</code> existed. B-1 through B-12, C-1 through C-7, five judge rubrics.</p>
         </div>
         <div class="fact">
           <p class="k">the evidence</p>
@@ -394,7 +394,7 @@
 
       <h2><span class="no">the pieces</span>One filter, enforced once, and many witnesses</h2>
       <div class="pieces">
-        <div class="piece"><code>ListingSearch.SearchService</code><span>The service: the five-stage ranking pipeline, the <code>ISearchIndex</code> seam, the ingestion consumer — the only write path — and OpenTelemetry instrumentation on every stage and every index call.</span></div>
+        <div class="piece"><code>ListingSearch.Service</code><span>The service: the five-stage ranking pipeline, the <code>ISearchIndex</code> seam, the ingestion consumer — the only write path — and OpenTelemetry instrumentation on every stage and every index call.</span></div>
         <div class="piece"><code>ListingSearch.AppHost</code><span>.NET Aspire composition root — development only, never containerised. One command brings the system up with nothing configured.</span></div>
         <div class="piece"><code>ListingSearch.ServiceDefaults</code><span>The kernel: OpenTelemetry, health checks, discovery, resilience — thin by rule.</span></div>
         <div class="piece"><code>docs/SPEC.md</code><span>The behaviour contract — 12 behaviours, 7 hard constraints, 5 rubrics — written before the pipeline existed.</span></div>
@@ -450,7 +450,7 @@
 
           <rect class="boundary" x="40" y="110" width="840" height="520" rx="8"/>
           <rect class="band" x="41" y="111" width="838" height="34"/>
-          <text class="lbl-strong" x="56" y="132">ListingSearch.SearchService · POST /search · GET /health · no write route</text>
+          <text class="lbl-strong" x="56" y="132">ListingSearch.Service · POST /search · GET /health · no write route</text>
           <text class="lbl" x="56" y="612">C-1 (never delisted) and C-2 (never past a filter) are enforced once — at filter construction</text>
           <text class="lbl" x="56" y="628">outcome is always exactly one of completed · degraded — never a silent timeout (C-4)</text>
 

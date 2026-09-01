@@ -1,8 +1,8 @@
-using ListingSearch.SearchService.Ingestion;
-using ListingSearch.SearchService.Pipeline;
-using ListingSearch.SearchService.Pipeline.Embedding;
-using ListingSearch.SearchService.Search;
-using ListingSearch.SearchService.Telemetry;
+using ListingSearch.Service.Ingestion;
+using ListingSearch.Service.Pipeline;
+using ListingSearch.Service.Pipeline.Embedding;
+using ListingSearch.Service.Search;
+using ListingSearch.Service.Telemetry;
 
 namespace ListingSearch.Evals.Mutations;
 

@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../ListingSearch.SearchService/ListingSearch.SearchService.csproj" />
+    <ProjectReference Include="../ListingSearch.Service/ListingSearch.Service.csproj" />
   </ItemGroup>
 
 </Project>

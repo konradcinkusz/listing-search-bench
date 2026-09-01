@@ -4,7 +4,7 @@
 # nothing in this repository's automated suite has ever done so.
 #
 #   docker compose up -d
-#   dotnet run --project src/ListingSearch.SearchService -- \
+#   dotnet run --project src/ListingSearch.Service -- \
 #     --SearchIndex:Mode=Elasticsearch \
 #     --SearchIndex:ElasticsearchUri=http://localhost:9200
 #

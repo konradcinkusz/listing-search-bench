@@ -2,9 +2,9 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using ListingSearch.Evals.Execution;
 using ListingSearch.Evals.Scenarios;
-using ListingSearch.SearchService.Ingestion;
-using ListingSearch.SearchService.Search;
-using ListingSearch.SearchService.Telemetry;
+using ListingSearch.Service.Ingestion;
+using ListingSearch.Service.Search;
+using ListingSearch.Service.Telemetry;
 
 namespace ListingSearch.Evals.Assertions;
 

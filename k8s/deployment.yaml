@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: search-service
-          # Built from src/ListingSearch.SearchService/Dockerfile — no registry is
+          # Built from src/ListingSearch.Service/Dockerfile — no registry is
           # wired to this repository, so this is a placeholder tag, not a
           # published image.
           image: listing-search-service:latest

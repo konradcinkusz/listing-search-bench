@@ -18,7 +18,7 @@
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var searchService = builder.AddProject<Projects.ListingSearch_SearchService>("search")
+var searchService = builder.AddProject<Projects.ListingSearch_Service>("search")
     .WithHttpHealthCheck("/health");
 
 _ = searchService;

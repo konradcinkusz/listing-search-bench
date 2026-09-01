@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using ListingSearch.SearchService.Search;
-using ListingSearch.SearchService.Telemetry;
+using ListingSearch.Service.Search;
+using ListingSearch.Service.Telemetry;
 
 namespace ListingSearch.Evals.Execution;
 

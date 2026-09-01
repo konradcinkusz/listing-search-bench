@@ -1,6 +1,6 @@
-using ListingSearch.SearchService.Ingestion;
-using ListingSearch.SearchService.Pipeline;
-using ListingSearch.SearchService.Pipeline.Stages;
+using ListingSearch.Service.Ingestion;
+using ListingSearch.Service.Pipeline;
+using ListingSearch.Service.Pipeline.Stages;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ListingSearch.Evals.Mutations;
