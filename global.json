@@ -6,7 +6,7 @@
     "allowPrerelease": false
   },
   "msbuild-sdks": {
-    "Aspire.AppHost.Sdk": "13.4.6"
+    "Aspire.AppHost.Sdk": "13.5.3"
   },
   "test": {
     "runner": "Microsoft.Testing.Platform"
