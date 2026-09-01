@@ -61,9 +61,8 @@ production-ready service, that gap is dated, reasoned, and tracked — in
 — rather than implied by silence.
 
 This is a proof of concept, built as independent, public proof of methodology
-for a specific job application — Backend Engineer, Marketplaces (Homefinder),
-comparis.ch — not a contribution to comparis's own codebase, and not (yet) a
-deployed service. [§9](#9-production-readiness-honestly) says exactly what
+on a synthetic corpus — not a contribution to any production codebase, and not
+(yet) a deployed service. [§9](#9-production-readiness-honestly) says exactly what
 that does and does not mean.
 
 ## 2. Why this exists
@@ -388,15 +387,15 @@ that need a second, independent author rather than more code.
 Stated so that scope creep has something to fail against, mirrored from
 [`README.md`](../README.md):
 
-- No UI. A REST API and nothing else — the job ad this repository answers is
-  about backend and ranking engineering, not frontend.
+- No UI. A REST API and nothing else — this repository is about backend and
+  ranking engineering, not frontend.
 - No personalisation, no authentication beyond a single fictional owner
   directory *(tracked to close — the roadmap issue's "production-safe API
   surface" workstream)*, no multi-tenant catalogue.
 - No spelling correction or query rewriting (D-8).
 - No fork of `architecture-standards`. Deviations are recorded, not worked
   around.
-- No real comparis data, ever, in any fixture. Every listing, owner, and
+- No real-world listing data, ever, in any fixture. Every listing, owner, and
   query in this repository is synthetic.
 - No HTTP route writes to the index. The only write path is
   `IngestionConsumer`, reachable only from an ingestion event.

@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=../schema/fixture.schema.json
 #
 # The base fixture every scenario starts from unless it names a different one
-# (SPEC §8.3 — fixture isolation). Listings are synthetic; no real comparis data,
-# ever (README non-goals).
+# (SPEC §8.3 — fixture isolation). Listings are synthetic; no real-world listing
+# data, ever (README non-goals).
 name: zurich-catalogue
 version: 1
 

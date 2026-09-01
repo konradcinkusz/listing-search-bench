@@ -47,25 +47,25 @@ flowchart TD
     class gate star
 ```
 
-This repository is a POC written for a specific application — Backend Engineer,
-Marketplaces (Homefinder), comparis.ch — built as independent, public proof of
-methodology on a synthetic corpus, not a contribution to comparis's own codebase.
+This repository is a proof of concept, built on a synthetic corpus as
+independent, public proof of methodology — not a deployed service, and not a
+contribution to any production codebase.
 
 <p align="right">(<a href="#listing-search-bench">back to top</a>)</p>
 
-## Where this answers the job ad
+## What this repository demonstrates
 
-| The ad asks for | Where this repository answers it |
+| Capability | Where it lives |
 |---|---|
-| ".NET Core / ASP.NET, REST APIs, Microservices" | `src/Homefinder.SearchService` — one deployable .NET 10 minimal-API service |
-| "SQL Server und Azure Cosmos DB zur Verwaltung von Applikationsdaten" | `IListingCatalog` (`Ingestion/ListingCatalog.cs`) — the transactional system of record `IngestionConsumer` reads and patches — is the seam a SQL Server–backed implementation would fill; `ISearchIndex` is the denormalised, read-optimised projection a Cosmos DB–style store would back in production |
-| "Verbesserung der Suchfunktionalität mit Elasticsearch" | The whole core: `Pipeline/Stages/*`, `Search/ISearchIndex.cs`, `Search/Elasticsearch/ElasticsearchIndex.cs` |
-| "Docker und Kubernetes" | `docker-compose.yml` (local Elasticsearch + Kibana); `k8s/` (illustrative deployment manifests) |
-| "Migration eines Legacy-.NET-Framework-Stacks... modernem .NET 10" | Written directly against .NET 10, minimal API, no IIS-era dependency anywhere — [ADR-0002](docs/adr/0002-mock-first-zero-credential-default.md) |
-| "Vektordatenbanken" *(nice to have)* | A real second retrieval path (`VectorRetrieverStage`, `DeterministicTextEmbedding`) merged with lexical results by `HybridRankerStage`, never the other way round |
-| "Elasticsearch-Ranking und Suchoptimierung" *(nice to have)* | Layer 1 asserts the structure of the ranking (candidate sets, attribution, filter order); Layer 2's `relevance` rubric grades whether the best match actually lands on top |
-| "Event-driven Architectures" *(nice to have)* | `Ingestion/IngestionConsumer.cs` — the **only** write path, reading `listing.published` / `listing.price_changed` / `listing.delisted`, idempotent by `event_id` ([ADR-0006](docs/adr/0006-event-idempotency-at-the-consumer-boundary.md)) |
-| "Data-Ingestion-Pipelines" *(nice to have)* | The ingestion pipeline end to end, exercised by `hap-006`, `hap-007`, `adv-002`, `deg-004` |
+| .NET Core / ASP.NET, REST APIs, microservices | `src/Homefinder.SearchService` — one deployable .NET 10 minimal-API service |
+| SQL Server and Cosmos DB–style stores for application data | `IListingCatalog` (`Ingestion/ListingCatalog.cs`) — the transactional system of record `IngestionConsumer` reads and patches — is the seam a SQL Server–backed implementation would fill; `ISearchIndex` is the denormalised, read-optimised projection a Cosmos DB–style store would back in production |
+| Search functionality built on Elasticsearch | The whole core: `Pipeline/Stages/*`, `Search/ISearchIndex.cs`, `Search/Elasticsearch/ElasticsearchIndex.cs` |
+| Docker and Kubernetes | `docker-compose.yml` (local Elasticsearch + Kibana); `k8s/` (illustrative deployment manifests) |
+| A modern .NET 10 stack, with no .NET Framework–era dependency | Written directly against .NET 10, minimal API, no IIS-era dependency anywhere — [ADR-0002](docs/adr/0002-mock-first-zero-credential-default.md) |
+| Vector databases | A real second retrieval path (`VectorRetrieverStage`, `DeterministicTextEmbedding`) merged with lexical results by `HybridRankerStage`, never the other way round |
+| Elasticsearch ranking and search optimisation | Layer 1 asserts the structure of the ranking (candidate sets, attribution, filter order); Layer 2's `relevance` rubric grades whether the best match actually lands on top |
+| Event-driven architecture | `Ingestion/IngestionConsumer.cs` — the **only** write path, reading `listing.published` / `listing.price_changed` / `listing.delisted`, idempotent by `event_id` ([ADR-0006](docs/adr/0006-event-idempotency-at-the-consumer-boundary.md)) |
+| Data-ingestion pipelines | The ingestion pipeline end to end, exercised by `hap-006`, `hap-007`, `adv-002`, `deg-004` |
 
 <p align="right">(<a href="#listing-search-bench">back to top</a>)</p>
 
@@ -240,8 +240,8 @@ Stated so that scope creep has something to fail against.
 - **No spelling correction or query rewriting.** [D-8](docs/DEVIATIONS.md).
 - **No fork of `architecture-standards`.** Deviations are recorded, not worked
   around.
-- **No real comparis data, ever, in any fixture.** Every listing, owner and query
-  in this repository is synthetic.
+- **No real-world listing data, ever, in any fixture.** Every listing, owner and
+  query in this repository is synthetic.
 - **No HTTP route writes to the index.** The only write path is
   `IngestionConsumer`, reachable only from an ingestion event —
   [`docs/SPEC.md` §2.1](docs/SPEC.md#21-the-index-boundary).

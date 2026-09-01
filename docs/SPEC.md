@@ -466,8 +466,8 @@ Written down because an assumption nobody stated is a defect nobody can find.
   exercise every structural property this specification tests, and named
   as a simplification rather than presented as production-grade relevance
   tuning.
-- **The corpus is on the order of tens of listings, not comparis's actual
-  scale.** [D-2](DEVIATIONS.md).
+- **The corpus is on the order of tens of listings, not production scale.**
+  [D-2](DEVIATIONS.md).
 - **No spelling correction or query rewriting.** [D-8](DEVIATIONS.md) and
   [§6](#6-out-of-scope) O-4.
 
