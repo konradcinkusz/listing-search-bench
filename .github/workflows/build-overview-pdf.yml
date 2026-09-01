@@ -32,7 +32,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # The papers include this repository's own Mermaid diagrams
       # (docs/diagrams/*.mmd — the same files README.md embeds inline, kept
