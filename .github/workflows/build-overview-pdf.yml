@@ -40,7 +40,7 @@ jobs:
       # so they are rendered to vector PDF here rather than redrawn a second
       # time in TikZ, which would be two sources of truth for one picture.
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
 
