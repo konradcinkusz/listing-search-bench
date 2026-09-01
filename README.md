@@ -132,10 +132,13 @@ scenario would fail if the claim ever stopped being true.
 
 ## Run it
 
-Prerequisites: the **.NET 10 SDK** — the only hard one. Node is not required; scenario
-schema validation is a `dotnet test`-time concern (`Layer1Tests`), not a separate
-tool. Nothing else: no account, no container registry, no cloud subscription, no
-Elasticsearch cluster.
+Prerequisites: the **.NET 10 SDK** — the only hard one. Node is not required to
+run the service, the tests or the evals; scenario schema validation is a
+`dotnet test`-time concern (`Layer1Tests`), not a separate tool. Node and a
+LaTeX distribution are needed only to build the overview papers
+([`docs/papers/`](docs/papers/)), which nothing else depends on. Nothing else:
+no account, no container registry, no cloud subscription, no Elasticsearch
+cluster.
 
 ```bash
 git clone https://github.com/konradcinkusz/listing-search-bench.git
@@ -203,7 +206,9 @@ docs/
   SPEC.md         the behaviour contract
   FINDINGS.md     what the evals actually caught, in numbers
   DEVIATIONS.md   where this repository departs from the standards — dated, reasoned
-  OVERVIEW.md     the whole repository, narrated start to end — also rendered to PDF on demand
+  OVERVIEW.md     the whole repository, narrated start to end — source for the papers
+  papers/         hand-authored LaTeX editions of it, English and Polish (ADR-0008)
+  diagrams/       the Mermaid sources the papers and this README share
   adr/            architecture decision records
 k8s/              illustrative deployment manifests — not deployed (see docs/DEVIATIONS.md)
 docker-compose.yml   local Elasticsearch + Kibana, for development only

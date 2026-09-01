@@ -1,0 +1,18 @@
+flowchart TD
+    lex["LexicalRetrieverStage"]
+    vec["VectorRetrieverStage"]
+    ing["IngestionConsumer"]
+    seam["<b>ISearchIndex</b> — five methods<br/>QueryAsync · VectorQueryAsync<br/>IndexAsync · DeleteAsync · HealthAsync<br/><i>nothing above this seam names a vendor</i>"]
+    mem["InMemoryFixtureIndex<br/>the zero-credential default<br/>every scenario, every CI run"]
+    es["ElasticsearchIndex<br/>written from the SDK's documented shapes<br/>never run against a cluster — D-4"]
+    fault["FaultInjectingSearchIndex<br/>degradation, simulated in-memory"]
+
+    lex --> seam
+    vec --> seam
+    ing --> seam
+    seam --> mem
+    seam --> es
+    seam --> fault
+
+    classDef star fill:#fdf0d5,stroke:#c8860d,stroke-width:2px,color:#3d2b00
+    class seam star

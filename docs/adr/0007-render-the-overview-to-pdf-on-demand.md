@@ -1,6 +1,6 @@
 # ADR-0007: Render a project overview to PDF on demand, never committed
 
-- **Status**: Accepted
+- **Status**: Superseded by [ADR-0008](0008-hand-authored-latex-editions-in-english-and-polish.md)
 - **Date**: 2026-08-17
 - **Phase**: 5
 - **Relates to**: REPO-BASELINE.md, ADR-0006 of `agent-eval-bench`

@@ -1,0 +1,23 @@
+flowchart TD
+    ev["listing.published · listing.price_changed · listing.delisted"]
+    res{"event_id reserved?<br/>IEventIdempotencyStore"}
+    dup["ingestion.duplicate_ignored<br/>never re-applied"]
+    known{"listing already published?"}
+    apply["ingestion.applied<br/>catalogue patched, index updated"]
+    buf["ingestion.deferred<br/>IPendingEventBuffer, per listing"]
+    full{"buffer full?"}
+    dlq["ingestion.dead_lettered<br/>IDeadLetterSink"]
+    replay["replayed automatically<br/>once published arrives"]
+
+    ev --> res
+    res -->|"no — already seen"| dup
+    res -->|"yes"| known
+    known -->|"yes"| apply
+    known -->|"no — out of order"| buf
+    buf --> full
+    full -->|"yes"| dlq
+    full -->|"no"| replay
+    replay --> apply
+
+    classDef star fill:#fdf0d5,stroke:#c8860d,stroke-width:2px,color:#3d2b00
+    class apply star

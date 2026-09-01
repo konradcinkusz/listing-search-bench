@@ -1,14 +1,19 @@
 name: Build Overview PDF
 
-# Renders docs/OVERVIEW.md to PDF via pandoc's LaTeX backend (pdflatex), on
-# demand only (workflow_dispatch) — a presentation of the living overview
-# document, not a versioned release artifact: there is no tag, no changelog
-# entry, and nobody depends on a specific build of it existing anywhere
-# (ADR-0007).
+# ─────────────────────────────────────────────────────────────────────────────
+#  Renders the LaTeX presentations of docs/OVERVIEW.md (docs/papers/*.tex) to
+#  PDF, on demand — one build per language edition, English and Polish.
 #
-# PDFs are build output: nothing this workflow produces is committed to the
-# repository (see .gitignore's LaTeX build-output block). The PDF is
-# downloaded from the run's own Artifacts section.
+#  Manually triggered only — deliberately. This is a presentation of the living
+#  overview document, not a versioned release artifact: there is no tag, no
+#  changelog entry, and nobody depends on a specific build of it existing
+#  anywhere. Regenerate it when a source .tex changes and someone wants the
+#  files.
+#
+#  PDFs are build output: nothing this workflow produces is committed — see
+#  .gitignore's "LaTeX build output" block, and ADR-0007. Both PDFs are
+#  uploaded in one run artifact, downloaded from the Actions run itself.
+# ─────────────────────────────────────────────────────────────────────────────
 
 on:
   workflow_dispatch:
@@ -22,45 +27,69 @@ concurrency:
 
 jobs:
   build:
-    name: Build PDF
+    name: Build PDFs
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install pandoc and a LaTeX engine
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            pandoc texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended lmodern
+      # The papers include this repository's own Mermaid diagrams
+      # (docs/diagrams/*.mmd — the same files README.md embeds inline, kept
+      # identical by check-diagrams.mjs). GitHub speaks Mermaid; a PDF does not,
+      # so they are rendered to vector PDF here rather than redrawn a second
+      # time in TikZ, which would be two sources of truth for one picture.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
-      - name: Render docs/OVERVIEW.md to PDF
+      - name: Render diagrams
         run: |
           set -euo pipefail
-          pandoc docs/OVERVIEW.md \
-            -o ListingSearchBench_Overview.pdf \
-            --from=gfm \
-            --toc --toc-depth=2 \
-            -V geometry:margin=2.2cm \
-            -V colorlinks=true -V linkcolor=blue \
-            --pdf-engine=pdflatex
+          # mermaid-cli is a pinned devDependency, so this installs the version
+          # the lockfile records rather than whatever the registry's floating
+          # latest is on the day the PDFs happen to be built.
+          npm ci
+          npm run render:diagrams
+
+      - name: Build English edition
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: listing-search-bench-overview.tex
+          working_directory: docs/papers
+
+      - name: Build Polish edition
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: listing-search-bench-overview.pl.tex
+          working_directory: docs/papers
+
+      - name: Rename PDFs
+        run: |
+          set -euo pipefail
+          mv docs/papers/listing-search-bench-overview.pdf ListingSearchBench_Overview_EN.pdf
+          mv docs/papers/listing-search-bench-overview.pl.pdf ListingSearchBench_Overview_PL.pdf
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ListingSearchBench_Overview_PDF
-          path: ListingSearchBench_Overview.pdf
+          path: |
+            ListingSearchBench_Overview_EN.pdf
+            ListingSearchBench_Overview_PL.pdf
           if-no-files-found: error
           retention-days: 30
 
       - name: Summary
         run: |
           {
-            echo "## Overview PDF built"
+            echo "## Overview PDFs built"
             echo
-            echo "Rendered from \`docs/OVERVIEW.md\` via pandoc's LaTeX backend (pdflatex)."
+            echo "Rendered from \`docs/papers/listing-search-bench-overview.tex\` and"
+            echo "\`listing-search-bench-overview.pl.tex\`, the English and Polish LaTeX"
+            echo "presentations of \`docs/OVERVIEW.md\`."
             echo
-            echo "Download **ListingSearchBench_Overview_PDF** from this run's Artifacts section below."
+            echo "Download **ListingSearchBench_Overview_PDF** from this run's Artifacts"
+            echo "section below — it contains both language editions."
           } >> "$GITHUB_STEP_SUMMARY"

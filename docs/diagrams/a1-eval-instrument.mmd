@@ -1,0 +1,21 @@
+flowchart TD
+    spec["<b>docs/SPEC.md</b> — the contract<br/><i>written before the pipeline</i>"]
+    scen["evals/scenarios/ — 28 scenarios as YAML<br/>happy · ambiguity · exclusion ·<br/>adversarial · degradation"]
+    runner["ScenarioRunner<br/>the REAL pipeline, in-process<br/>faults injected at the index seam"]
+    trace["One captured trace per scenario"]
+    l1["<b>Layer 1</b> — deterministic<br/>no model, no network, no credential"]
+    l2["<b>Layer 2</b> — rubric judge<br/>pinned rubrics, hashed prompt"]
+    mut["Mutation pass — 4 broken variants<br/>proves the suite can fail"]
+    gate["CI gates<br/>constraints 100%<br/>behaviours vs baseline"]
+
+    spec -->|"each behaviour cites its proof"| scen
+    scen --> runner
+    runner --> trace
+    trace --> l1
+    trace --> l2
+    l1 --> gate
+    l2 --> gate
+    mut -.->|"every variant must be caught"| l1
+
+    classDef star fill:#fdf0d5,stroke:#c8860d,stroke-width:2px,color:#3d2b00
+    class gate star
