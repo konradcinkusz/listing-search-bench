@@ -72,7 +72,7 @@ jobs:
           mv docs/papers/listing-search-bench-overview.pl.pdf ListingSearchBench_Overview_PL.pdf
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ListingSearchBench_Overview_PDF
           path: |
