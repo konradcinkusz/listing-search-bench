@@ -1,0 +1,687 @@
+% ============================================================================
+% listing-search-bench -- comprehensive project overview, rendered to PDF.
+%
+% This is NOT a research paper under architecture-standards'
+% docs/research/00-RESEARCH-DOCUMENTATION.md (that standard governs studies
+% that answer a previously-unknown question with evidence; this document is a
+% project overview aimed at a reader who wants the whole shape of the
+% repository in one sitting). It reuses that standard's house LaTeX preamble
+% and PAPER-TEMPLATE.tex skeleton purely for visual consistency with the rest
+% of the author's formal documents, and repurposes \paperstatus accordingly:
+% it carries the project's status, not a draft/verified research marker.
+%
+% Source of truth: docs/OVERVIEW.md in this repository, which is itself bound
+% to docs/SPEC.md, docs/FINDINGS.md and docs/DEVIATIONS.md. This file
+% introduces no fact those documents do not already contain.
+%
+% The figures are NOT redrawn here. They are the repository's own Mermaid
+% diagrams (docs/diagrams/*.mmd -- the same files README.md embeds inline,
+% kept identical by scripts/check-diagrams.mjs), rendered to vector PDF by
+% scripts/render-diagrams.mjs. One source, two output formats; drawing them a
+% second time in TikZ would be two sources of truth for one picture.
+%
+% A Polish edition lives alongside this file:
+%   listing-search-bench-overview.pl.tex
+%
+% Build (PDFs are build output -- never committed):
+%   npm ci && npm run render:diagrams
+%   pdflatex listing-search-bench-overview.tex && pdflatex listing-search-bench-overview.tex
+% Also built on demand by .github/workflows/build-overview-pdf.yml
+% (workflow_dispatch only), which builds both language editions.
+% ============================================================================
+\documentclass[11pt,a4paper]{article}
+
+% Package imports -- the house set (see architecture-standards' PAPER-TEMPLATE.tex)
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+% Added for this edition's symbols (not in the house template):
+\usepackage{pifont}
+\usepackage{amssymb}
+% Added for this edition's typesetting: the prose is dense with long dotted
+% identifiers (ISearchIndex.VectorQueryAsync, ingestion.dead_lettered), and TeX
+% will not hyphenate inside \texttt{} on its own -- without this, eight of them
+% ran past the right margin. microtype is deliberately NOT used: its font
+% expansion needs scalable fonts, and switching the document off the house
+% template's Computer Modern would break visual parity with the other papers in
+% this estate for a problem hyphenat already solves.
+\usepackage[htt]{hyphenat}
+\emergencystretch=2em
+
+% Page geometry
+\geometry{
+    a4paper,
+    left=2.2cm,
+    right=2.2cm,
+    top=2.5cm,
+    bottom=2.5cm
+}
+
+% House colors
+\definecolor{primaryblue}{RGB}{41,128,185}
+\definecolor{darkblue}{RGB}{31,78,121}
+\definecolor{lightgray}{RGB}{236,240,241}
+\definecolor{darkgray}{RGB}{52,73,94}
+\definecolor{accentgreen}{RGB}{39,174,96}
+\definecolor{accentorange}{RGB}{230,126,34}
+\definecolor{accentred}{RGB}{231,76,60}
+
+% Section formatting -- house style
+\titleformat{\section}
+    {\color{primaryblue}\Large\bfseries\sffamily}
+    {\thesection.}{0.5em}{}[\titlerule]
+
+\titleformat{\subsection}
+    {\color{darkblue}\large\bfseries\sffamily}
+    {\thesubsection}{0.5em}{}
+
+\titleformat{\subsubsection}
+    {\color{darkgray}\normalsize\bfseries\sffamily}
+    {\thesubsubsection}{0.5em}{}
+
+% Paper status -- repurposed from the research-paper template's draft/verified
+% marker (see the file header comment above): this names the project's own
+% status instead.
+\newcommand{\paperstatus}{PROOF OF CONCEPT}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small\sffamily\color{darkgray} listing-search-bench --- Project Overview}
+\fancyhead[R]{\small\sffamily\color{accentred} \paperstatus\ --- \today}
+\fancyfoot[C]{\thepage}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primaryblue,
+    urlcolor=primaryblue,
+    pdfauthor={Konrad Cinkusz},
+    pdftitle={listing-search-bench: A Spec-First Evaluation Bench for a Hybrid Search and Ranking Service}
+}
+
+% House convenience commands
+\newcommand{\repopath}[1]{\colorbox{lightgray}{\texttt{#1}}}
+\newcommand{\finding}[1]{{\color{primaryblue}\textbf{#1}}}
+
+\begin{document}
+
+% ----------------------------------------------------------------------------
+\begin{center}
+    {\LARGE\bfseries\sffamily\color{darkblue}
+    listing-search-bench}
+
+    \vspace{0.3cm}
+
+    {\Large\sffamily\color{darkgray}
+    A Spec-First Evaluation Bench for a Hybrid Search\\
+    and Ranking Service}
+
+    \vspace{0.6cm}
+
+    {\large Konrad Cinkusz}
+
+    \vspace{0.2cm}
+
+    {\normalsize\color{darkgray} \url{https://github.com/konradcinkusz/listing-search-bench}}
+
+    \vspace{0.2cm}
+
+    {\normalsize\color{accentred}\sffamily \paperstatus\ --- \today\ ---
+     companion document: \texttt{docs/OVERVIEW.md} (this repository) ---
+     \textit{Polski: } \texttt{listing-search-bench-overview.pl.tex}}
+\end{center}
+
+\vspace{0.4cm}
+
+% ----------------------------------------------------------------------------
+\begin{abstract}
+\noindent A user searches a catalogue of real-estate listings --- free text
+plus structured filters --- and one .NET service returns a ranked result set
+built by combining two independent retrieval paths: lexical term overlap and
+dense-vector similarity. Full-text search over a document store is solved.
+What this repository is about is the harder, less-solved half: \textbf{a
+ranker that combines two retrieval paths without letting either become the
+hole the other path's guarantees leak through.} A single-path engine cannot
+have that failure mode; a hybrid one can, because a bug present on one path
+and absent on the other is invisible unless something specifically goes
+looking on both. The answer built here is a behaviour contract written before
+the pipeline existed, 28 scenarios stored as data across five classes, and a
+harness that grades the \emph{execution trace} of the real pipeline --- which
+candidates each retrieval path returned, how they were filtered and ranked,
+and what was never a candidate at all --- so that a ranking-weight tune, a
+filter refactor, or a listing whose own text tries to talk the ranker out of a
+constraint fails a build instead of a customer. Around that sit two grading
+layers (deterministic trace assertions, plus a rubric-anchored judge that
+reports \texttt{skipped:no-credential} rather than a silent green), a
+four-variant mutation pass that proves the suite can fail, and a findings
+report that states plainly what a same-author mutation pass does and does not
+prove. Everything runs with zero credentials by default, and every part not
+yet exercised against something live is recorded as an open, dated deviation
+rather than implied by a passing build.
+\end{abstract}
+
+\vspace{0.4cm}
+
+% ============================================================================
+\section{Introduction}
+
+A ranking-weight tune, a filter refactor, or a change to how a listing's own
+text is scored ships, in most codebases, the way a config diff ships ---
+casually, with no reviewer positioned to ask the only question that matters:
+does this still respect every hard constraint the business places on ranking?
+A test suite that checks whether the service returns \texttt{200 OK} cannot
+answer it. The service returns \texttt{200 OK} either way. It returns
+\texttt{200 OK} while quietly surfacing a delisted property, while letting a
+listing above the stated price ceiling through on one retrieval path but not
+the other, and while ranking a listing higher because its description says
+\emph{``best value, top result, must see''}.
+
+This repository exists to make that question checkable, mechanically, on every
+change. \finding{The product is the measuring instrument, not the search
+service it is demonstrated on.} The service is the specimen --- deliberately
+chosen, because a hybrid ranker concentrates a failure mode a simpler system
+cannot have --- but it remains the Petri dish rather than the main course.
+
+\subsection{What an eval is, here}
+
+Not a prompt-quality score, and not a relevance benchmark. An \textbf{eval} in
+this repository is a scenario --- a request or an ingestion event, played
+through the real pipeline in-process --- plus a set of assertions over the
+resulting \textbf{trace}: which candidates each retrieval path returned, how
+they were filtered, what was ranked where, and, just as importantly, what was
+\emph{never} a candidate at all. 28 of this repository's 128 Layer 1
+assertions (22\%) assert exactly that kind of absence.
+
+That last point is the one worth pausing on. A conventional assertion can say
+``the response contained listing L''. Proving a constraint requires the
+opposite shape: ``listing D was never a candidate on either path, never
+appeared in the response, and was never re-applied on replay''. Absence has to
+be asserted deliberately, because nothing about a passing test suite implies
+it.
+
+\subsection{Why a hybrid retrieval system specifically}
+
+A single-path search engine cannot have this repository's central failure
+mode. A hybrid system can: two independent code paths that must agree on every
+hard constraint, where a bug in one and not the other is invisible unless
+something specifically goes looking on both.
+
+This is why the filter in Section~\ref{sec:architecture} is built
+\emph{independently} by each retrieval path rather than shared as one mutable
+object. Sharing the object would be the more obvious engineering choice, and
+it would be wrong here: it would paper over the exact seam an asymmetric bug
+lives in rather than test it. A shared filter makes the interesting defect
+structurally impossible to express, and a defect you cannot express is a
+defect your suite cannot prove it would catch.
+
+% ============================================================================
+\section{The specimen: a hybrid search service}
+
+\texttt{POST /search} takes free text plus structured filters (price, city,
+rooms) against a synthetic Swiss real-estate catalogue in French, German and
+English. The ranker combines:
+
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Lexical retrieval} --- BM25-style term overlap against title
+        and description (\texttt{Lexical\-Retriever\-Stage},
+        \texttt{ISearchIndex.\-QueryAsync}).
+  \item \textbf{Vector retrieval} --- cosine similarity against a text
+        embedding (\texttt{VectorRetrieverStage},
+        \texttt{ISearchIndex.\-VectorQueryAsync}). The embedding itself is a
+        deterministic, feature-hashed stand-in for a trained model
+        (\texttt{DeterministicTextEmbedding});
+        Section~\ref{sec:readiness} states plainly what that does and does not
+        prove.
+\end{itemize}
+
+\texttt{HybridRankerStage} merges both candidate sets, attributes every result
+to \texttt{lexical}, \texttt{vector}, or \texttt{both}, and --- the part with
+an adversary in mind --- scans a listing's own free text for
+ranking-manipulative language (\texttt{RankingManipulationScanner}), reports
+what it finds, and \textbf{never} lets that finding move a score. The only two
+numbers that ever feed \texttt{RankedCandidate.CombinedScore} are a lexical
+match value and a cosine similarity, computed the same deterministic way for
+every listing in the corpus.
+
+The only write path is \texttt{IngestionConsumer}, reading
+\texttt{listing.published}, \texttt{listing.price\_changed} and
+\texttt{listing.delisted} events off a queue, idempotent by
+\texttt{event\_id}. There is deliberately no HTTP route that writes to the
+index --- a convenience endpoint would hand every adversarial scenario a way
+around the exact thing this repository tests.
+
+% ============================================================================
+\section{Architecture}
+\label{sec:architecture}
+
+\subsection{The request pipeline}
+
+Six stages, each an OpenTelemetry span, with the filter built twice on purpose
+(Figure~\ref{fig:pipeline}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{../diagrams/rendered/a2-request-pipeline.pdf}
+\caption{The request pipeline. \texttt{FilterResolverStage} resolves the hard
+filters once --- \texttt{AllowedStatuses = [Active]}, always --- and then each
+retrieval stage builds its own filter independently from that resolution. The
+independence is the point: it is the seam an asymmetric bug lives in, and the
+only place a scenario can catch one.}
+\label{fig:pipeline}
+\end{figure}
+
+\texttt{ResponseAssemblerStage} strips any internal id, raw score, or
+embedding vector before the response leaves the process, and the response is
+always explicitly \texttt{completed} or \texttt{degraded} --- never a silent
+failure.
+
+\subsection{One seam, five methods}
+
+\texttt{ISearchIndex} is the one interface either retrieval stage reaches a
+backend through, normalised so that nothing above the seam ever names a vendor
+(Figure~\ref{fig:seam}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.86\linewidth]{../diagrams/rendered/a4-index-seam.pdf}
+\caption{The index seam. \texttt{InMemoryFixtureIndex} is the default,
+zero-credential implementation every scenario and every CI run uses;
+\texttt{ElasticsearchIndex} is written from the client SDK's own documented
+shapes and has never answered a real query (D-4);
+\texttt{FaultInjectingSearchIndex} is where the degradation scenarios inject
+their faults.}
+\label{fig:seam}
+\end{figure}
+
+\subsection{The embedding seam}
+
+\texttt{IEmbeddingProvider} sits between the pipeline and any embedding
+computation --- \texttt{VectorRetrieverStage} and
+\texttt{ElasticsearchIndex.IndexAsync} call it, never a static hashing
+function directly. The default implementation
+(\texttt{DeterministicEmbeddingProvider}) wraps the same deterministic hash
+the pipeline always used, so today's behaviour is unchanged; the seam exists
+so a trained model can be substituted later without touching either caller.
+
+\subsection{Ingestion, idempotency, and reordering tolerance}
+
+\texttt{IngestionConsumer} reserves every event's \texttt{event\_id} before
+applying anything (\texttt{IEvent\-Idempotency\-Store}); a reservation that fails
+means the event was already applied, and it is reported
+\texttt{ingestion.duplicate\_ignored}, not re-applied
+(Figure~\ref{fig:ingestion}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.62\linewidth]{../diagrams/rendered/a3-ingestion-write-path.pdf}
+\caption{The only write path. An event naming a listing no
+\texttt{published} event has been seen for is deferred and replayed rather
+than rejected, because a real transport does not guarantee delivery order
+across partitions; a listing whose \texttt{published} event never arrives is
+dead-lettered rather than buffered forever.}
+\label{fig:ingestion}
+\end{figure}
+
+\subsection{Instrumentation}
+
+Every stage and every index call is an OpenTelemetry span
+(\texttt{search\_stage \{name\}}, \texttt{search\_index \{operation\}}); every
+constraint-relevant decision is a span event on top of that
+(\texttt{filter.rejected}, \texttt{ranking.manipulation\_ignored},
+\texttt{ingestion.applied}, \texttt{ingestion.deferred},
+\texttt{ingestion.dead\_lettered}, \texttt{degradation.noted}, and others ---
+\texttt{docs/SPEC.md} \S2.3's full table).
+
+This trace is the interface between the pipeline and its evals. Layer 1 reads
+it on every push, needing no model, no network, and no credential.
+
+% ============================================================================
+\section{The spec-first workflow}
+
+\texttt{docs/SPEC.md} existed before a single line of
+\texttt{ListingSearch.Service} did. It defines the vocabulary the eval harness
+and this document both use --- what a ``candidate'' is, what ``degraded''
+means, which trace events are contract rather than diagnostics --- twelve
+expected behaviours (B-1 through B-12), seven hard constraints (C-1 through
+C-7), and four judge rubrics.
+
+The rule the repository holds itself to: \finding{a behaviour change starts in
+\texttt{docs/SPEC.md}, lands with its scenarios in the same pull request, and
+bumps the version at the top.} A pull request that changes a pipeline stage or
+\texttt{ISearchIndex} without touching that document is a pull request whose
+behaviour change nobody wrote down.
+
+Spec version 1.1.0 --- this document's current source --- added B-12, the
+deferred-and-replayed ingestion behaviour, in exactly that shape: spec change,
+code change, and two new scenarios (\texttt{deg-006}, \texttt{deg-007}) in one
+pull request.
+
+% ============================================================================
+\section{Evaluation methodology}
+
+The instrument has two layers and one proof that the layers work
+(Figure~\ref{fig:instrument}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\linewidth]{../diagrams/rendered/a1-eval-instrument.pdf}
+\caption{The instrument end to end. The specification cites its proof for each
+behaviour; the scenarios run against the real pipeline in-process; the trace,
+not the response text, is what both grading layers read; and the mutation pass
+exists to prove Layer 1 can actually fail.}
+\label{fig:instrument}
+\end{figure}
+
+\subsection{Layer 1 --- deterministic trace assertions}
+
+128 assertions across 28 YAML scenarios in five classes (happy, ambiguity,
+exclusion, adversarial, degradation), run against the real pipeline in-process
+by \texttt{ScenarioRunner}. No model, no network, no credential --- the gated
+path is deterministic by construction (\texttt{docs/SPEC.md} \S8.2), so a
+failure is a failure, not a sample that might pass on retry.
+
+Constraint-gated scenarios --- 13 of them --- hard-block at 100\%. Behaviour
+scenarios are measured against a recorded baseline
+(\texttt{evals/baselines/layer1.json}), so a regression is a fact rather than
+a vibe.
+
+\subsection{Layer 2 --- a rubric-anchored judge}
+
+Four rubrics (\texttt{relevance}, \texttt{attribution-clarity},
+\texttt{exclusion-honesty}, \texttt{degradation-honesty}), each a small
+ordinal scale with a written anchor per level. ``Rate this ranking 1--10''
+produces a number with no meaning to regress against, so it does not appear
+anywhere in this repository.
+
+The judge's prompt and rubrics are hashed at load time, so an edit to either
+is a version bump whether or not a human remembered to move the number. On a
+credential-less run --- every CI run today --- it reports
+\texttt{skipped:no-credential}, never a silent green.
+
+\subsection{Proving the suite can fail}
+
+Four deliberately broken pipeline variants, each swapping exactly one
+registration --- a stage or the ingestion consumer --- for a broken twin that
+keeps the original's name and changes exactly one behaviour.
+
+\begin{table}[htbp]
+\centering
+\caption{The mutation pass. Each variant changes one thing, and a specific
+named scenario must catch it.}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Variant} & \textbf{What it breaks} \\
+\midrule
+\texttt{disable-hard-price-filter} & The hard price ceiling stops being applied. \\
+\texttt{skip-delisted-check-on-vector-path} & The delisted check survives on the lexical path and disappears on the vector path --- the asymmetric bug the architecture exists to expose. \\
+\texttt{apply-event-twice-on-retry} & Idempotency at the consumer boundary. \\
+\texttt{rerank-boosts-flagged-text} & The C-7 promise that manipulative text is reported and never scored. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Every one is caught by a specific, named scenario. Section~\ref{sec:findings}
+states the honest caveat about what that catching does and does not prove.
+
+% ============================================================================
+\section{Findings: what the instrument actually caught}
+\label{sec:findings}
+
+Two findings to date, both from building the measuring instrument, neither
+from the pipeline behaving unexpectedly under real traffic --- there has never
+been any.
+
+\vspace{0.2cm}
+\noindent\finding{F-1.} A scenario asserted exact ranks on the unstated
+assumption that only two candidates would score above zero for a given query.
+Running the harness against the real pipeline surfaced a third candidate --- a
+hash collision in the deterministic embedding. The fix was the assertion, from
+an exact-rank claim to a relative-order claim, not the pipeline, which was
+correct by its own contract.
+
+\vspace{0.2cm}
+\noindent\finding{F-2.} An early design for enforcing C-1 and C-2 would have
+put a second, independent filter check inside the index decorator. Reasoning
+through what the mutation pass would need to prove --- before any mutation
+code existed --- showed this would make the intended defect structurally
+unfalsifiable: a stage that built a wrong filter would still be caught by the
+decorator re-checking the same filter object, so the mutation could never leak
+anything, and the test proving the scenario catches the mutation would pass
+for the wrong reason.
+
+F-2 is the one to remember, because it was caught by design review rather than
+by a failing test, and because the defect it prevented was not in the pipeline
+at all. It was in the instrument: a measurement that would have reported
+success for a reason unrelated to the thing being measured.
+
+\subsection{The honest caveat}
+
+The same person wrote the scenario corpus and the four broken variants, in the
+same sitting, with full knowledge of how each mutation would break the
+pipeline. All four were caught on the first run --- which is weaker evidence
+than it looks. It proves the assertions are internally consistent with the
+design intent, not that they would catch a bug nobody had in mind while
+writing them. Closing that gap (D-7) needs a second, independent author, not
+more code.
+
+% ============================================================================
+\section{CI and governance}
+
+\begin{table}[htbp]
+\centering
+\caption{What runs, when, and what it needs.}
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+\textbf{Workflow} & \textbf{Trigger} & \textbf{What it does} \\
+\midrule
+\texttt{ci.yml} & every push and PR &
+\texttt{lint-docs} (markdown, diagram parity, Ajv scenario and fixture schema
+validation), \texttt{build-test} (unit tests, Layer 1, the mutation pass,
+judge machinery), \texttt{secret-scan} (gitleaks over the full history) ---
+zero credentials required \\
+\addlinespace
+\texttt{nightly.yml} & scheduled, keyed &
+the full Layer 2 judged set; reports \texttt{NOT RUN} without a configured
+\texttt{LLM\_API\_KEY}, honestly, rather than a silent skip nobody notices \\
+\addlinespace
+\texttt{build-overview-pdf.yml} & \texttt{workflow\_dispatch} only &
+renders this paper and its Polish edition to PDF \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+There is deliberately no deploy workflow. Section~\ref{sec:readiness} explains
+why, and what would need to exist first.
+
+% ============================================================================
+\section{Production readiness, honestly}
+\label{sec:readiness}
+
+This is a proof of concept, not a deployed service, and this section says
+exactly what that means rather than leaving a reader to infer it from an
+absent demo link.
+
+\textbf{What is real:} the pipeline, the eval harness, the mutation pass, and
+the CI that runs all three on every push, with zero credentials configured.
+
+\textbf{What is not, yet} --- each dated and reasoned in
+\texttt{docs/DEVIATIONS.md}:
+
+\begin{table}[htbp]
+\centering
+\caption{The open deviations, as of this document's source. Each carries a
+date and a stated condition that would close it.}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{\#} & \textbf{What has never happened} \\
+\midrule
+D-1 & No live embedding model or LLM judge has ever run. The vector path is a deterministic hash; the judge has never scored a real response. \\
+D-2 & No corpus at production scale --- 28 scenarios against a $\sim$20-listing fixture. \\
+D-3 & No real ingestion traffic. Every event was authored by a scenario file and replayed through the harness. \\
+D-4 & No live Elasticsearch cluster, ever. \texttt{ElasticsearchIndex.cs} is written from the SDK's documented shapes. \\
+D-5 & No production loop. No deployed, trafficked endpoint exists to extract an incident from, and no deploy workflow exists at all. \\
+D-6 & The C-7 ranking-manipulation defence has been attacked only by the two scenarios planned for it, not a wider adversarial corpus. \\
+D-7 & The mutation pass was not independently authored --- Section~\ref{sec:findings}'s caveat. \\
+D-8 & No spelling correction or query rewriting exists. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A public roadmap issue tracks what closing each of these --- plus what a
+genuinely production-ready deployment needs beyond them (authentication, a
+deploy pipeline, load testing at scale, real observability) --- would take,
+organised into ordered workstreams rather than a flat wishlist. Three
+self-contained pieces of it have already landed without needing any external
+infrastructure: rate limiting and a bounded page size on \texttt{POST /search},
+the \texttt{ISearchIndex.HealthAsync()} readiness-probe wiring, and the
+ingestion reordering-and-dead-letter behaviour.
+
+% ============================================================================
+\section{Decisions, deviations, and non-goals}
+
+\subsection{Seven decisions, each naming what it rejected}
+
+One file per decision, numbered sequentially, never renumbered or rewritten
+after acceptance.
+
+\begin{table}[htbp]
+\centering
+\caption{Architecture decision records (\texttt{docs/adr/}).}
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+\textbf{\#} & \textbf{Status} & \textbf{Title} \\
+\midrule
+0001 & Accepted & Record architecture decisions \\
+0002 & Accepted & Mock index first, zero credentials by default \\
+0003 & Accepted & Assertions read the structural trace, never response text \\
+0004 & Accepted & Pin the embedding and the judge model separately, never fall back silently \\
+0005 & Accepted & The Elasticsearch and vector-store SDK lives behind a five-method seam \\
+0006 & Accepted & Event idempotency at the consumer boundary \\
+0007 & Accepted & Render this document to PDF on demand, never committed \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Deviations, and what is deliberately not carried over}
+
+\texttt{docs/DEVIATIONS.md} is the authoritative, dated list --- open from the
+first commit, not written retroactively. Beyond the eight rows above it also
+records two extensions this repository proposes back to the standards it
+follows (a mutation-testing requirement for eval suites generally, and a
+fixture-composition pattern for eval scenarios), and three patterns the worked
+example this repository mirrors carries that this repository deliberately does
+not: a confirmation-gate write boundary (there is no write path a human
+approves --- the only write is an automated consumer), a showcase frontend
+(this repository is about backend and ranking engineering, not UI), and a
+tag-driven public deployment (no public demo exists for this proof of
+concept).
+
+\subsection{Non-goals}
+
+Stated so that scope creep has something to fail against:
+
+\begin{itemize}[leftmargin=1.4em]
+  \item No UI. A REST API and nothing else.
+  \item No personalisation, no authentication beyond a single fictional owner
+        directory, no multi-tenant catalogue.
+  \item No spelling correction or query rewriting (D-8).
+  \item No fork of the standards this repository follows. Deviations are
+        recorded, not worked around.
+  \item No real-world listing data, ever, in any fixture. Every listing, owner
+        and query is synthetic.
+  \item No HTTP route writes to the index. The only write path is
+        \texttt{IngestionConsumer}, reachable only from an ingestion event.
+\end{itemize}
+
+% ============================================================================
+\section{Engineering values}
+
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{The spec is the contract; the code is measured against it, not
+        the other way round.}
+  \item \textbf{A claim without a measurement is marketing.} Every number in
+        this paper traces back to a file the eval suite itself produces, or to
+        a document version-controlled alongside the code it describes.
+  \item \textbf{Absence is worth proving, not just presence.} 28 of 128
+        Layer 1 assertions (22\%) assert that something never happened.
+  \item \textbf{A test suite that has never failed is a suite nobody has
+        tested.} ``The constraint scenarios pass'' and ``the constraint
+        scenarios would catch a violation'' are different claims, and only one
+        of them is provable by watching green CI.
+  \item \textbf{An honest gap, dated and reasoned, is a decision. An unstated
+        one is drift.} ``We know this isn't production-ready'' is not the same
+        sentence as writing down which specific parts aren't, why, and what
+        would close each one.
+\end{itemize}
+
+% ============================================================================
+\section{Status, and how this relates to the standards}
+
+Complete, tested, and honestly documented as a proof of concept: the full
+pipeline, 128 Layer 1 assertions across 28 scenarios, the four-variant
+mutation pass, and CI that runs all of it with zero credentials configured.
+Not complete, and not claimed to be, as a production service.
+
+The forward plan lives as a public GitHub issue rather than in this document,
+so it can be checked off in place rather than going stale here: eight ordered
+workstreams, from a real Elasticsearch backend and a real embedding model
+through a deploy pipeline, load testing at scale, and closing the two
+eval-rigor gaps that need a second, independent author rather than more code.
+
+This repository does not re-derive its architecture. It reads
+\texttt{architecture-standards} and follows it --- .NET Aspire with the
+AppHost as composition root, one thin \texttt{ServiceDefaults} kernel,
+OpenTelemetry first --- and mirrors, rather than re-derives, the eval-bench
+shape that \texttt{agent-eval-bench}, the same author's reference
+implementation of the standards' AI-evaluation guide, already demonstrates for
+a different specimen. \finding{The specimen changed, from a tool-using agent
+to a hybrid ranker; the instrument's shape did not.} Where this repository
+must depart from either, the departure is recorded, dated and reasoned rather
+than implied by the absence of a pattern the worked example carries.
+
+% ============================================================================
+\section{Conclusion}
+
+The claim this repository makes is narrow and it is measured: a hybrid ranker
+respects its hard constraints on both retrieval paths, is honest about
+attribution and about degradation, and does not let a listing buy its own rank
+--- and each of those is bound to a named scenario that would fail if it
+stopped being true. The mutation pass exists because a suite that has never
+failed has not been tested, and the deviations exist because the difference
+between a proof of concept and a production service is a list of specific
+absent things, not a disclaimer.
+
+What is not claimed is equally explicit. No real cluster, no trained
+embedding, no judged run with a credential, no traffic, no deployment. Those
+are not omissions discovered by a reader; they are rows in a dated table, each
+with the condition that would close it.
+
+\begin{thebibliography}{9}
+\bibitem{spec} \texttt{docs/SPEC.md} --- the behaviour contract: twelve
+behaviours, seven hard constraints, four rubrics, and the trace-event table.
+Written before the pipeline.
+\bibitem{findings} \texttt{docs/FINDINGS.md} --- the recomputed counts, the
+mutation-pass results, and what the suite has \emph{not} caught.
+\bibitem{deviations} \texttt{docs/DEVIATIONS.md} --- the dated deviations,
+the proposed extensions, and the patterns deliberately not carried over.
+\bibitem{overview} \texttt{docs/OVERVIEW.md} --- the Markdown source this
+paper presents.
+\bibitem{standards} \texttt{architecture-standards} ---
+\url{https://github.com/konradcinkusz/architecture-standards}
+\bibitem{aeb} \texttt{agent-eval-bench} ---
+\url{https://github.com/konradcinkusz/agent-eval-bench}
+\end{thebibliography}
+
+\end{document}

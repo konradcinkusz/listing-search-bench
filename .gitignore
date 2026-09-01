@@ -59,7 +59,7 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 
-# LaTeX build output (docs/OVERVIEW.md rendered on demand — ADR-0007). PDFs
+# LaTeX build output (docs/papers/*.tex, rendered on demand — ADR-0007). PDFs
 # are build output, never committed: a generated binary in git is a merge
 # conflict waiting to happen and a diff nobody can review.
 *.pdf
@@ -67,3 +67,8 @@ nunit-*.xml
 *.log
 *.toc
 *.out
+
+# Rendered diagrams. docs/diagrams/*.mmd is the source the papers and README
+# share; the vector PDFs the papers \includegraphics are produced by
+# `npm run render:diagrams` and are build output like everything above.
+docs/diagrams/rendered/

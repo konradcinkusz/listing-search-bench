@@ -13,9 +13,10 @@ Source of truth for every number and every claim below: this repository's own
 introduces no fact those do not already contain — it exists to narrate them in
 order, not to restate them independently and risk drifting from them.
 
-**Rendering.** This file is also the source for an on-demand PDF, built by
+**Rendering.** This file is the source of truth for two hand-authored LaTeX
+presentations of itself — English and Polish — built on demand by
 [`.github/workflows/build-overview-pdf.yml`](../.github/workflows/build-overview-pdf.yml)
-(`workflow_dispatch` only — [§16](#16-getting-the-pdf)). The PDF is never
+(`workflow_dispatch` only — [§16](#16-getting-the-pdf)). Neither PDF is ever
 committed to this repository.
 
 ## Contents
@@ -274,7 +275,7 @@ Full detail, including what the suite has *not* caught and cannot claim:
 |---|---|---|
 | `ci.yml` | Every push and pull request | `lint-docs` (markdown + Ajv scenario/fixture schema validation), `build-test` (unit tests, Layer 1, the mutation pass, judge machinery), `secret-scan` (gitleaks) — zero credentials required |
 | `nightly.yml` | Scheduled, keyed | The full Layer 2 judged set. Reports `NOT RUN` without a configured `LLM_API_KEY`, honestly, rather than a silent skip nobody notices |
-| `build-overview-pdf.yml` | `workflow_dispatch` only | Renders this document to PDF ([§16](#16-getting-the-pdf)) |
+| `build-overview-pdf.yml` | `workflow_dispatch` only | Renders both LaTeX editions of this document — English and Polish — to PDF, diagrams included ([§16](#16-getting-the-pdf)) |
 
 There is deliberately no deploy workflow. [§9](#9-production-readiness-honestly)
 explains why, and what would need to exist first.
@@ -346,7 +347,8 @@ after acceptance — [`docs/adr/`](adr/):
 | 0004 | Pin the embedding and the judge model separately, never fall back silently | Accepted |
 | 0005 | The Elasticsearch and vector-store SDK lives behind a five-method seam | Accepted |
 | 0006 | Event idempotency at the consumer boundary | Accepted |
-| 0007 | Render this document to PDF on demand, never committed | Accepted |
+| 0007 | Render this document to PDF on demand, never committed | Superseded by 0008 |
+| 0008 | Hand-author the overview as LaTeX, in English and Polish | Accepted |
 
 ## 12. Values and engineering philosophy
 
@@ -417,24 +419,37 @@ implied by the absence of a pattern the worked example carries.
 
 ## 16. Getting the PDF
 
-This document is rendered to PDF by
-[`.github/workflows/build-overview-pdf.yml`](../.github/workflows/build-overview-pdf.yml)
-via [pandoc](https://pandoc.org/)'s LaTeX backend (`pdflatex`) — manually
-triggered only (`workflow_dispatch`), because this is a presentation of a
-living document, not a versioned release artifact: there is no tag, no
-changelog entry, and nobody depends on a specific build of it existing
-anywhere. Nothing the workflow produces is committed to this repository — a
-generated binary in git is a merge conflict waiting to happen and a diff
-nobody can review (ADR-0007).
+This document has two PDF presentations — English and Polish — hand-authored as
+LaTeX under [`docs/papers/`](papers/) and built by
+[`.github/workflows/build-overview-pdf.yml`](../.github/workflows/build-overview-pdf.yml),
+manually triggered only (`workflow_dispatch`), because this is a presentation of
+a living document, not a versioned release artifact: there is no tag, no
+changelog entry, and nobody depends on a specific build of it existing anywhere.
+Nothing the workflow produces is committed — a generated binary in git is a
+merge conflict waiting to happen and a diff nobody can review
+([ADR-0008](adr/0008-hand-authored-latex-editions-in-english-and-polish.md),
+superseding [ADR-0007](adr/0007-render-the-overview-to-pdf-on-demand.md)).
+
+The figures in both editions are this repository's own Mermaid diagrams
+([`docs/diagrams/`](diagrams/) — the same files `README.md` embeds inline, kept
+byte-identical by [`scripts/check-diagrams.mjs`](../scripts/check-diagrams.mjs)),
+rendered to vector PDF rather than redrawn. One source, two output formats.
 
 To get a copy: open the **Actions** tab on GitHub, select **Build Overview
 PDF**, click **Run workflow**, then download
-**ListingSearchBench_Overview_PDF** from the finished run's Artifacts
-section. Locally, with pandoc and a LaTeX distribution installed:
+**ListingSearchBench_Overview_PDF** from the finished run's Artifacts section —
+it contains both `ListingSearchBench_Overview_EN.pdf` and
+`ListingSearchBench_Overview_PL.pdf`.
+
+Locally, with Node and a LaTeX distribution installed (the Polish edition also
+needs babel's Polish support — `texlive-lang-polish` on Debian and Ubuntu):
 
 ```bash
-pandoc docs/OVERVIEW.md -o ListingSearchBench_Overview.pdf \
-  --from=gfm --toc --toc-depth=2 \
-  -V geometry:margin=2.2cm -V colorlinks=true -V linkcolor=blue \
-  --pdf-engine=pdflatex
+npm ci && npm run render:diagrams
+cd docs/papers
+pdflatex listing-search-bench-overview.tex && pdflatex listing-search-bench-overview.tex
+pdflatex listing-search-bench-overview.pl.tex && pdflatex listing-search-bench-overview.pl.tex
 ```
+
+Twice each, deliberately: the first pass writes the cross-references the second
+pass resolves.

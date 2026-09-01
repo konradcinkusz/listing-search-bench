@@ -1,0 +1,703 @@
+% ============================================================================
+% listing-search-bench -- polska wersja przeglądu projektu, budowana do PDF.
+%
+% To NIE jest artykuł naukowy w rozumieniu standardu architecture-standards
+% (docs/research/00-RESEARCH-DOCUMENTATION.md) -- ten dokument nie odpowiada
+% na wcześniej nieznane pytanie badawcze, tylko przedstawia to, co już zostało
+% ustalone w docs/OVERVIEW.md. Preambuła i szkielet PAPER-TEMPLATE.tex są tu
+% użyte wyłącznie dla spójności wizualnej z pozostałymi formalnymi dokumentami
+% autora; \paperstatus niesie status projektu, a nie oznaczenie
+% draft/verified właściwe dla badania naukowego.
+%
+% Źródło prawdy: docs/OVERVIEW.md w tym repozytorium, samo związane z
+% docs/SPEC.md, docs/FINDINGS.md i docs/DEVIATIONS.md. Ten plik nie wprowadza
+% żadnego faktu, którego tamte dokumenty by nie zawierały.
+%
+% Rysunki nie są tu przerysowywane. To własne diagramy Mermaid tego
+% repozytorium (docs/diagrams/*.mmd -- te same pliki, które README.md osadza
+% inline, utrzymywane w zgodzie przez scripts/check-diagrams.mjs), wyrenderowane
+% do wektorowego PDF przez scripts/render-diagrams.mjs. Jedno źródło, dwa
+% formaty wyjściowe.
+%
+% Nazewnictwo kodu (nazwy klas, etapów, zdarzeń) pozostaje po angielsku, bo tak
+% brzmi w repozytorium -- tłumaczona jest proza, nie identyfikatory.
+%
+% Wydanie angielskie: listing-search-bench-overview.tex
+%
+% Budowanie (PDF to wynik builda -- nigdy nie jest commitowany):
+%   npm ci && npm run render:diagrams
+%   pdflatex listing-search-bench-overview.pl.tex && pdflatex listing-search-bench-overview.pl.tex
+% Budowane też na żądanie przez .github/workflows/build-overview-pdf.yml
+% (wyłącznie workflow_dispatch), który buduje obie wersje językowe.
+% ============================================================================
+\documentclass[11pt,a4paper]{article}
+
+% Importy pakietów -- zestaw domowy (patrz PAPER-TEMPLATE.tex w architecture-standards)
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+% Dodane w tym wydaniu (spoza szablonu domowego):
+\usepackage{pifont}
+\usepackage{amssymb}
+% Proza jest gęsta od długich identyfikatorów z kropkami
+% (ISearchIndex.VectorQueryAsync, ingestion.dead_lettered), a TeX sam nie
+% złamie wiersza wewnątrz \texttt{}. microtype celowo NIE jest używany: jego
+% rozszerzanie fontów wymaga fontów skalowalnych, a zejście z domowego
+% Computer Modern zepsułoby spójność wizualną z pozostałymi paperami.
+\usepackage[htt]{hyphenat}
+\emergencystretch=2em
+
+% Geometria strony
+\geometry{
+    a4paper,
+    left=2.2cm,
+    right=2.2cm,
+    top=2.5cm,
+    bottom=2.5cm
+}
+
+% Kolory domowe
+\definecolor{primaryblue}{RGB}{41,128,185}
+\definecolor{darkblue}{RGB}{31,78,121}
+\definecolor{lightgray}{RGB}{236,240,241}
+\definecolor{darkgray}{RGB}{52,73,94}
+\definecolor{accentgreen}{RGB}{39,174,96}
+\definecolor{accentorange}{RGB}{230,126,34}
+\definecolor{accentred}{RGB}{231,76,60}
+
+% Formatowanie sekcji -- styl domowy
+\titleformat{\section}
+    {\color{primaryblue}\Large\bfseries\sffamily}
+    {\thesection.}{0.5em}{}[\titlerule]
+
+\titleformat{\subsection}
+    {\color{darkblue}\large\bfseries\sffamily}
+    {\thesubsection}{0.5em}{}
+
+\titleformat{\subsubsection}
+    {\color{darkgray}\normalsize\bfseries\sffamily}
+    {\thesubsubsection}{0.5em}{}
+
+% Status dokumentu -- przejęty ze znacznika draft/verified szablonu
+% artykułu naukowego: niesie status projektu, nie badania.
+\newcommand{\paperstatus}{PROOF OF CONCEPT}
+
+% Nagłówek i stopka
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small\sffamily\color{darkgray} listing-search-bench --- przegląd projektu}
+\fancyhead[R]{\small\sffamily\color{accentred} \paperstatus\ --- \today}
+\fancyfoot[C]{\thepage}
+
+% Konfiguracja hyperref
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primaryblue,
+    urlcolor=primaryblue,
+    pdfauthor={Konrad Cinkusz},
+    pdftitle={listing-search-bench: stanowisko ewaluacyjne spec-first dla hybrydowej wyszukiwarki i rankingu}
+}
+
+% Domowe polecenia pomocnicze
+\newcommand{\repopath}[1]{\colorbox{lightgray}{\texttt{#1}}}
+\newcommand{\finding}[1]{{\color{primaryblue}\textbf{#1}}}
+
+\begin{document}
+
+% ----------------------------------------------------------------------------
+\begin{center}
+    {\LARGE\bfseries\sffamily\color{darkblue}
+    listing-search-bench}
+
+    \vspace{0.3cm}
+
+    {\Large\sffamily\color{darkgray}
+    Stanowisko ewaluacyjne spec-first\\
+    dla hybrydowej wyszukiwarki i rankingu}
+
+    \vspace{0.6cm}
+
+    {\large Konrad Cinkusz}
+
+    \vspace{0.2cm}
+
+    {\normalsize\color{darkgray} \url{https://github.com/konradcinkusz/listing-search-bench}}
+
+    \vspace{0.2cm}
+
+    {\normalsize\color{accentred}\sffamily \paperstatus\ --- \today\ ---
+     dokument towarzyszący: \texttt{docs/OVERVIEW.md} (to repozytorium) ---
+     \textit{English: } \texttt{listing-search-bench-overview.tex}}
+\end{center}
+
+\vspace{0.4cm}
+
+% ----------------------------------------------------------------------------
+\begin{abstract}
+\noindent Użytkownik przeszukuje katalog ogłoszeń nieruchomości --- tekstem
+swobodnym plus filtrami strukturalnymi --- a jedna usługa .NET zwraca
+uporządkowany zbiór wyników, zbudowany przez połączenie dwóch niezależnych
+ścieżek wyszukiwania: leksykalnego pokrycia terminów i podobieństwa wektorowego.
+Wyszukiwanie pełnotekstowe po składzie dokumentów jest problemem rozwiązanym.
+To repozytorium dotyczy trudniejszej, mniej rozwiązanej połowy: \textbf{rankera,
+który łączy dwie ścieżki wyszukiwania, nie pozwalając żadnej z nich stać się
+dziurą, którą wyciekają gwarancje tej drugiej.} Silnik jednościeżkowy nie może
+mieć takiego trybu awarii; hybrydowy może, bo błąd obecny na jednej ścieżce, a
+nieobecny na drugiej, jest niewidoczny, dopóki coś celowo nie sprawdzi obu.
+Odpowiedzią zbudowaną tutaj jest kontrakt zachowań spisany, zanim powstał
+pipeline, 28 scenariuszy przechowywanych jako dane w pięciu klasach oraz
+harness oceniający \emph{ślad wykonania} prawdziwego pipeline'u --- które
+kandydatury zwróciła każda ścieżka, jak zostały odfiltrowane i uszeregowane
+oraz co w ogóle nigdy nie było kandydatem --- tak, aby zmiana wag rankingu,
+refaktor filtra albo ogłoszenie, którego własny tekst próbuje wyperswadować
+rankerowi ograniczenie, wywracały build, a nie klienta. Wokół tego stoją dwie
+warstwy oceny (deterministyczne asercje na śladzie oraz sędzia zakotwiczony w
+rubrykach, który raportuje \texttt{skipped:no-credential} zamiast cichej
+zieleni), czterowariantowy przebieg mutacyjny dowodzący, że zestaw potrafi
+upaść, oraz raport ustaleń mówiący wprost, czego przebieg mutacyjny pisany
+przez jednego autora dowodzi, a czego nie. Całość działa domyślnie bez żadnych
+poświadczeń, a każdy element nieprzetestowany dotąd na czymś żywym jest
+zapisany jako otwarte, datowane odstępstwo, a nie sugerowany przez zielony
+build.
+\end{abstract}
+
+\vspace{0.4cm}
+
+% ============================================================================
+\section{Wprowadzenie}
+
+Zmiana wagi w rankingu, refaktor filtra albo zmiana sposobu punktowania
+własnego tekstu ogłoszenia trafiają w większości baz kodu na produkcję tak,
+jak trafia tam zmiana konfiguracji --- mimochodem, bez recenzenta ustawionego
+tak, by zadał jedyne istotne pytanie: czy to nadal respektuje każde twarde
+ograniczenie, jakie biznes nakłada na ranking? Zestaw testów sprawdzający, czy
+usługa zwraca \texttt{200 OK}, nie odpowie na nie. Usługa zwraca
+\texttt{200 OK} tak czy inaczej. Zwraca \texttt{200 OK}, wystawiając po cichu
+wycofane ogłoszenie, przepuszczając ogłoszenie powyżej deklarowanego pułapu
+ceny na jednej ścieżce wyszukiwania, a nie na drugiej, i podnosząc pozycję
+ogłoszenia dlatego, że jego opis mówi \emph{,,najlepsza oferta, top wynik,
+trzeba zobaczyć''}.
+
+To repozytorium istnieje po to, żeby uczynić tamto pytanie sprawdzalnym ---
+mechanicznie, przy każdej zmianie. \finding{Produktem jest przyrząd pomiarowy,
+a nie usługa wyszukiwania, na której go zademonstrowano.} Usługa jest
+preparatem --- dobranym celowo, bo hybrydowy ranker skupia w sobie tryb awarii,
+którego prostszy system mieć nie może --- ale pozostaje szalką Petriego, nie
+daniem głównym.
+
+\subsection{Czym jest tutaj eval}
+
+Nie oceną jakości promptu ani benchmarkiem trafności. \textbf{Eval} w tym
+repozytorium to scenariusz --- żądanie albo zdarzenie ingestii, przepuszczone
+przez prawdziwy pipeline w tym samym procesie --- plus zbiór asercji na
+powstałym \textbf{śladzie}: które kandydatury zwróciła każda ścieżka
+wyszukiwania, jak zostały odfiltrowane, co znalazło się na której pozycji i,
+równie ważne, co \emph{nigdy} nie było kandydatem. 28 ze 128 asercji Warstwy 1
+w tym repozytorium (22\%) stwierdza dokładnie taką nieobecność.
+
+Warto się przy tym zatrzymać. Zwykła asercja potrafi powiedzieć ,,odpowiedź
+zawierała ogłoszenie L''. Dowiedzenie ograniczenia wymaga kształtu odwrotnego:
+,,ogłoszenie D nigdy nie było kandydatem na żadnej ze ścieżek, nigdy nie
+pojawiło się w odpowiedzi i nigdy nie zostało ponownie zaaplikowane przy
+powtórce''. Nieobecność trzeba stwierdzać świadomie, bo nic w przechodzącym
+zestawie testów jej nie implikuje.
+
+\subsection{Dlaczego akurat system hybrydowy}
+
+Jednościeżkowa wyszukiwarka nie może mieć centralnego trybu awarii tego
+repozytorium. System hybrydowy może: dwie niezależne ścieżki kodu, które muszą
+zgadzać się co do każdego twardego ograniczenia, gdzie błąd w jednej, a nie w
+drugiej, jest niewidoczny, dopóki coś celowo nie sprawdzi obu.
+
+Dlatego filtr w sekcji~\ref{sec:architecture} jest budowany \emph{niezależnie}
+przez każdą ścieżkę wyszukiwania, zamiast być współdzielony jako jeden
+mutowalny obiekt. Współdzielenie obiektu byłoby oczywistszym wyborem
+inżynierskim i byłoby tutaj błędem: zamaskowałoby dokładnie ten szew, w którym
+mieszka błąd asymetryczny, zamiast go testować. Wspólny filtr czyni ciekawy
+defekt strukturalnie niewyrażalnym, a defekt, którego nie da się wyrazić, to
+defekt, o którym zestaw nie może dowieść, że by go złapał.
+
+% ============================================================================
+\section{Preparat: hybrydowa usługa wyszukiwania}
+
+\texttt{POST /search} przyjmuje tekst swobodny plus filtry strukturalne (cena,
+miasto, liczba pokoi) na syntetycznym, szwajcarskim katalogu nieruchomości po
+francusku, niemiecku i angielsku. Ranker łączy:
+
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Wyszukiwanie leksykalne} --- pokrycie terminów w stylu BM25
+        na tytule i opisie (\texttt{Lexical\-Retriever\-Stage},
+        \texttt{ISearchIndex.\-QueryAsync}).
+  \item \textbf{Wyszukiwanie wektorowe} --- podobieństwo kosinusowe względem
+        zanurzenia tekstu (\texttt{VectorRetrieverStage},
+        \texttt{ISearchIndex.\-VectorQueryAsync}). Samo zanurzenie jest
+        deterministycznym, haszowanym cechowo zamiennikiem wytrenowanego
+        modelu (\texttt{Deterministic\-Text\-Embedding});
+        sekcja~\ref{sec:readiness} mówi wprost, czego to dowodzi, a czego nie.
+\end{itemize}
+
+\texttt{HybridRankerStage} scala oba zbiory kandydatur, przypisuje każdy wynik
+do \texttt{lexical}, \texttt{vector} albo \texttt{both} i --- to część
+pomyślana z przeciwnikiem na uwadze --- skanuje własny tekst ogłoszenia pod
+kątem języka manipulującego rankingiem
+(\texttt{RankingManipulationScanner}), raportuje, co znalazł, i
+\textbf{nigdy} nie pozwala temu znalezisku ruszyć punktacji. Jedyne dwie
+liczby, które kiedykolwiek zasilają \texttt{RankedCandidate.\-CombinedScore},
+to wartość dopasowania leksykalnego i podobieństwo kosinusowe, liczone tak
+samo deterministycznie dla każdego ogłoszenia w korpusie.
+
+Jedyną ścieżką zapisu jest \texttt{IngestionConsumer}, czytający zdarzenia
+\texttt{listing.published}, \texttt{listing.price\_changed} i
+\texttt{listing.delisted} z kolejki, idempotentny po \texttt{event\_id}.
+Celowo nie istnieje żadna trasa HTTP zapisująca do indeksu --- wygodny
+endpoint podałby każdemu scenariuszowi adwersarialnemu obejście dokładnie tej
+rzeczy, którą to repozytorium testuje.
+
+% ============================================================================
+\section{Architektura}
+\label{sec:architecture}
+
+\subsection{Pipeline żądania}
+
+Sześć etapów, każdy jako span OpenTelemetry, z filtrem budowanym dwa razy
+celowo (rysunek~\ref{fig:pipeline}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{../diagrams/rendered/a2-request-pipeline.pdf}
+\caption{Pipeline żądania. \texttt{FilterResolverStage} rozstrzyga twarde
+filtry raz --- \texttt{AllowedStatuses = [Active]}, zawsze --- a następnie
+każdy etap wyszukiwania buduje z tego rozstrzygnięcia własny filtr,
+niezależnie. Ta niezależność jest sednem: to szew, w którym mieszka błąd
+asymetryczny, i jedyne miejsce, w którym scenariusz może go złapać.}
+\label{fig:pipeline}
+\end{figure}
+
+\texttt{ResponseAssemblerStage} usuwa każdy wewnętrzny identyfikator, surowy
+wynik punktowy i wektor zanurzenia, zanim odpowiedź opuści proces, a odpowiedź
+jest zawsze jawnie \texttt{completed} albo \texttt{degraded} --- nigdy cichą
+porażką.
+
+\subsection{Jeden szew, pięć metod}
+
+\texttt{ISearchIndex} to jedyny interfejs, przez który którykolwiek etap
+wyszukiwania sięga do backendu, znormalizowany tak, by nic ponad tym szwem
+nigdy nie nazywało dostawcy (rysunek~\ref{fig:seam}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.86\linewidth]{../diagrams/rendered/a4-index-seam.pdf}
+\caption{Szew indeksu. \texttt{InMemoryFixtureIndex} to domyślna
+implementacja bez poświadczeń, używana przez każdy scenariusz i każdy
+przebieg CI; \texttt{ElasticsearchIndex} jest napisany z udokumentowanych
+kształtów klienckiego SDK i nigdy nie odpowiedział na prawdziwe zapytanie
+(D-4); \texttt{FaultInjectingSearchIndex} to miejsce, w którym scenariusze
+degradacji wstrzykują awarie.}
+\label{fig:seam}
+\end{figure}
+
+\subsection{Szew zanurzeń}
+
+\texttt{IEmbeddingProvider} stoi między pipeline'em a jakimkolwiek liczeniem
+zanurzenia --- \texttt{VectorRetrieverStage} i
+\texttt{ElasticsearchIndex.\-IndexAsync} wołają jego, nigdy statycznej funkcji
+haszującej wprost. Domyślna implementacja
+(\texttt{DeterministicEmbeddingProvider}) opakowuje ten sam deterministyczny
+hasz, którego pipeline używał zawsze, więc dzisiejsze zachowanie się nie
+zmienia; szew istnieje po to, by wytrenowany model dało się podstawić później,
+nie dotykając żadnego z wołających.
+
+\subsection{Ingestia, idempotencja i tolerancja na przestawioną kolejność}
+
+\texttt{IngestionConsumer} rezerwuje \texttt{event\_id} każdego zdarzenia,
+zanim cokolwiek zaaplikuje (\texttt{IEvent\-Idempotency\-Store}); nieudana
+rezerwacja oznacza, że zdarzenie już zostało zaaplikowane, i jest raportowana
+jako \texttt{ingestion.duplicate\_ignored}, a nie aplikowana ponownie
+(rysunek~\ref{fig:ingestion}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.62\linewidth]{../diagrams/rendered/a3-ingestion-write-path.pdf}
+\caption{Jedyna ścieżka zapisu. Zdarzenie nazywające ogłoszenie, dla którego
+nie widziano zdarzenia \texttt{published}, jest odraczane i odtwarzane, a nie
+odrzucane, bo prawdziwy transport nie gwarantuje kolejności dostarczenia
+między partycjami; ogłoszenie, którego \texttt{published} nigdy nie
+przychodzi, trafia do dead-letter, zamiast być buforowane w nieskończoność.}
+\label{fig:ingestion}
+\end{figure}
+
+\subsection{Instrumentacja}
+
+Każdy etap i każde wywołanie indeksu to span OpenTelemetry
+(\texttt{search\_stage \{name\}}, \texttt{search\_index \{operation\}}); każda
+decyzja istotna dla ograniczeń to dodatkowo zdarzenie na spanie
+(\texttt{filter.rejected}, \texttt{ranking.manipulation\_ignored},
+\texttt{ingestion.applied}, \texttt{ingestion.deferred},
+\texttt{ingestion.dead\_lettered}, \texttt{degradation.noted} i inne --- pełna
+tabela w \texttt{docs/SPEC.md} \S2.3).
+
+Ten ślad jest interfejsem między pipeline'em a jego evalami. Warstwa 1 czyta
+go przy każdym pushu, nie potrzebując modelu, sieci ani poświadczeń.
+
+% ============================================================================
+\section{Przepływ pracy spec-first}
+
+\texttt{docs/SPEC.md} istniał, zanim powstała pierwsza linia
+\texttt{ListingSearch.Service}. Definiuje słownik, którego używają zarówno
+harness ewaluacyjny, jak i ten dokument --- czym jest ,,kandydat'', co znaczy
+,,degraded'', które zdarzenia śladu są kontraktem, a które diagnostyką ---
+dwanaście oczekiwanych zachowań (B-1 do B-12), siedem twardych ograniczeń
+(C-1 do C-7) i cztery rubryki sędziowskie.
+
+Reguła, do której repozytorium samo się zobowiązuje: \finding{zmiana
+zachowania zaczyna się w \texttt{docs/SPEC.md}, ląduje razem ze swoimi
+scenariuszami w tym samym pull requeście i podbija wersję na górze pliku.}
+Pull request zmieniający etap pipeline'u albo \texttt{ISearchIndex} bez
+dotknięcia tamtego dokumentu to pull request, którego zmiany zachowania nikt
+nie zapisał.
+
+Wersja specyfikacji 1.1.0 --- bieżące źródło tego dokumentu --- dodała B-12,
+zachowanie odroczenia i odtworzenia w ingestii, dokładnie w tym kształcie:
+zmiana specyfikacji, zmiana kodu i dwa nowe scenariusze (\texttt{deg-006},
+\texttt{deg-007}) w jednym pull requeście.
+
+% ============================================================================
+\section{Metodyka ewaluacji}
+
+Przyrząd ma dwie warstwy i jeden dowód, że te warstwy działają
+(rysunek~\ref{fig:instrument}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\linewidth]{../diagrams/rendered/a1-eval-instrument.pdf}
+\caption{Przyrząd od początku do końca. Specyfikacja wskazuje dowód dla
+każdego zachowania; scenariusze biegną przeciwko prawdziwemu pipeline'owi w
+tym samym procesie; to ślad, a nie tekst odpowiedzi, czytają obie warstwy
+oceny; a przebieg mutacyjny istnieje po to, by dowieść, że Warstwa 1
+faktycznie potrafi upaść.}
+\label{fig:instrument}
+\end{figure}
+
+\subsection{Warstwa 1 --- deterministyczne asercje na śladzie}
+
+128 asercji w 28 scenariuszach YAML w pięciu klasach (happy, ambiguity,
+exclusion, adversarial, degradation), uruchamianych przeciwko prawdziwemu
+pipeline'owi w tym samym procesie przez \texttt{ScenarioRunner}. Bez modelu,
+bez sieci, bez poświadczeń --- ścieżka objęta bramką jest deterministyczna z
+konstrukcji (\texttt{docs/SPEC.md} \S8.2), więc porażka jest porażką, a nie
+próbką, która może przejść przy ponowieniu.
+
+Scenariusze bramkowane ograniczeniem --- jest ich 13 --- blokują twardo przy
+100\%. Scenariusze zachowań mierzy się względem zapisanej linii bazowej
+(\texttt{evals/baselines/layer1.json}), więc regresja jest faktem, a nie
+wrażeniem.
+
+\subsection{Warstwa 2 --- sędzia zakotwiczony w rubrykach}
+
+Cztery rubryki (\texttt{relevance}, \texttt{attribution-clarity},
+\texttt{exclusion-honesty}, \texttt{degradation-honesty}), każda jako mała
+skala porządkowa z opisaną kotwicą dla każdego poziomu. ,,Oceń ten ranking w
+skali 1--10'' produkuje liczbę bez znaczenia, względem której nie da się
+mierzyć regresji, więc nie pojawia się nigdzie w tym repozytorium.
+
+Prompt i rubryki sędziego są haszowane przy wczytaniu, więc edycja
+któregokolwiek z nich jest podbiciem wersji niezależnie od tego, czy człowiek
+pamiętał, żeby ruszyć numer. W przebiegu bez poświadczeń --- czyli w każdym
+dzisiejszym przebiegu CI --- raportuje \texttt{skipped:no-credential}, nigdy
+cichej zieleni.
+
+\subsection{Dowód, że zestaw potrafi upaść}
+
+Cztery celowo zepsute warianty pipeline'u, każdy podmieniający dokładnie jedną
+rejestrację --- etap albo konsumenta ingestii --- na zepsuty bliźniak, który
+zachowuje nazwę oryginału i zmienia dokładnie jedno zachowanie.
+
+\begin{table}[htbp]
+\centering
+\caption{Przebieg mutacyjny. Każdy wariant zmienia jedną rzecz i musi zostać
+złapany przez konkretny, nazwany scenariusz.}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Wariant} & \textbf{Co psuje} \\
+\midrule
+\texttt{disable-hard-price-filter} & Twardy pułap ceny przestaje być stosowany. \\
+\texttt{skip-delisted-check-on-vector-path} & Kontrola wycofania zostaje na ścieżce leksykalnej, a znika na wektorowej --- błąd asymetryczny, dla którego ujawnienia istnieje ta architektura. \\
+\texttt{apply-event-twice-on-retry} & Idempotencję na granicy konsumenta. \\
+\texttt{rerank-boosts-flagged-text} & Obietnicę C-7, że tekst manipulacyjny jest raportowany i nigdy nie punktowany. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Każdy z nich jest łapany przez konkretny, nazwany scenariusz.
+Sekcja~\ref{sec:findings} podaje uczciwe zastrzeżenie co do tego, czego to
+złapanie dowodzi, a czego nie.
+
+% ============================================================================
+\section{Ustalenia: co przyrząd faktycznie złapał}
+\label{sec:findings}
+
+Dwa ustalenia do tej pory, oba z budowy przyrządu pomiarowego, żadne z
+nieoczekiwanego zachowania pipeline'u pod prawdziwym ruchem --- takiego nigdy
+nie było.
+
+\vspace{0.2cm}
+\noindent\finding{F-1.} Scenariusz stwierdzał dokładne pozycje przy
+niewypowiedzianym założeniu, że dla danego zapytania tylko dwie kandydatury
+uzyskają wynik powyżej zera. Uruchomienie harnessu przeciwko prawdziwemu
+pipeline'owi ujawniło trzecią --- kolizję haszy w deterministycznym
+zanurzeniu. Poprawką była asercja, z twierdzenia o dokładnej pozycji na
+twierdzenie o kolejności względnej, a nie pipeline, który był poprawny wobec
+własnego kontraktu.
+
+\vspace{0.2cm}
+\noindent\finding{F-2.} Wczesny projekt egzekwowania C-1 i C-2 umieściłby
+drugą, niezależną kontrolę filtra wewnątrz dekoratora indeksu. Przemyślenie,
+co przebieg mutacyjny musiałby udowodnić --- zanim powstał jakikolwiek kod
+mutacji --- pokazało, że uczyniłoby to zamierzony defekt strukturalnie
+niefalsyfikowalnym: etap budujący zły filtr i tak zostałby złapany przez
+dekorator sprawdzający ponownie ten sam obiekt filtra, więc mutacja nigdy nie
+mogłaby niczego przepuścić, a test dowodzący, że scenariusz łapie mutację,
+przechodziłby z niewłaściwego powodu.
+
+To F-2 warto zapamiętać, bo zostało złapane przez przegląd projektu, a nie
+przez padający test, i bo defekt, któremu zapobiegło, w ogóle nie był w
+pipeline. Był w przyrządzie: pomiar raportowałby sukces z powodu niezwiązanego
+z mierzoną rzeczą.
+
+\subsection{Uczciwe zastrzeżenie}
+
+Ta sama osoba napisała korpus scenariuszy i cztery zepsute warianty, w trakcie
+jednego posiedzenia, z pełną wiedzą o tym, jak każda mutacja zepsuje pipeline.
+Wszystkie cztery zostały złapane za pierwszym razem --- co jest słabszym
+dowodem, niż wygląda. Dowodzi, że asercje są wewnętrznie spójne z intencją
+projektową, a nie że złapałyby błąd, którego nikt nie miał na myśli, pisząc
+je. Zamknięcie tej luki (D-7) wymaga drugiego, niezależnego autora, a nie
+większej ilości kodu.
+
+% ============================================================================
+\section{CI i nadzór}
+
+\begin{table}[htbp]
+\centering
+\caption{Co się uruchamia, kiedy i czego potrzebuje.}
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+\textbf{Workflow} & \textbf{Wyzwalacz} & \textbf{Co robi} \\
+\midrule
+\texttt{ci.yml} & każdy push i PR &
+\texttt{lint-docs} (markdown, zgodność diagramów, walidacja schematów Ajv dla
+scenariuszy i fikstur), \texttt{build-test} (testy jednostkowe, Warstwa 1,
+przebieg mutacyjny, maszyneria sędziego), \texttt{secret-scan} (gitleaks po
+całej historii) --- bez żadnych poświadczeń \\
+\addlinespace
+\texttt{nightly.yml} & harmonogram, z kluczem &
+pełny zestaw oceniany przez Warstwę 2; bez skonfigurowanego
+\texttt{LLM\_API\_KEY} raportuje \texttt{NOT RUN} uczciwie, zamiast cicho
+pominąć \\
+\addlinespace
+\texttt{build-overview-pdf.yml} & wyłącznie \texttt{workflow\_dispatch} &
+renderuje ten paper i jego wydanie angielskie do PDF \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Celowo nie ma workflow wdrożeniowego. Sekcja~\ref{sec:readiness} wyjaśnia
+dlaczego i co musiałoby istnieć wcześniej.
+
+% ============================================================================
+\section{Gotowość produkcyjna, uczciwie}
+\label{sec:readiness}
+
+To jest proof of concept, a nie wdrożona usługa, i ta sekcja mówi wprost, co
+to znaczy, zamiast zostawiać czytelnika z wnioskowaniem z nieobecnego linku do
+dema.
+
+\textbf{Co jest prawdziwe:} pipeline, harness ewaluacyjny, przebieg mutacyjny
+i CI uruchamiające całą trójkę przy każdym pushu, bez skonfigurowanych
+poświadczeń.
+
+\textbf{Czego jeszcze nie ma} --- każde datowane i uzasadnione w
+\texttt{docs/DEVIATIONS.md}:
+
+\begin{table}[htbp]
+\centering
+\caption{Otwarte odstępstwa na moment powstania źródła tego dokumentu. Każde
+niesie datę i warunek, który by je zamknął.}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{\#} & \textbf{Co nigdy się nie wydarzyło} \\
+\midrule
+D-1 & Nigdy nie działał żywy model zanurzeń ani sędzia LLM. Ścieżka wektorowa to deterministyczny hasz; sędzia nigdy nie ocenił prawdziwej odpowiedzi. \\
+D-2 & Brak korpusu w skali produkcyjnej --- 28 scenariuszy na fiksturze $\sim$20 ogłoszeń. \\
+D-3 & Brak prawdziwego ruchu ingestii. Każde zdarzenie napisał plik scenariusza i odtworzył harness. \\
+D-4 & Nigdy nie było żywego klastra Elasticsearch. \texttt{ElasticsearchIndex.cs} jest napisany z udokumentowanych kształtów SDK. \\
+D-5 & Brak pętli produkcyjnej. Nie istnieje wdrożony endpoint z ruchem, z którego dałoby się wyciągnąć incydent, ani żaden workflow wdrożeniowy. \\
+D-6 & Obrona C-7 przed manipulacją rankingiem była atakowana wyłącznie przez dwa zaplanowane dla niej scenariusze, nie przez szerszy korpus adwersarialny. \\
+D-7 & Przebieg mutacyjny nie był pisany niezależnie --- zastrzeżenie z sekcji~\ref{sec:findings}. \\
+D-8 & Nie istnieje korekta pisowni ani przepisywanie zapytań. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Publiczne issue z mapą drogową śledzi, czego wymagałoby zamknięcie każdego z
+nich --- plus czego naprawdę produkcyjne wdrożenie potrzebuje ponad to
+(uwierzytelnianie, pipeline wdrożeniowy, testy obciążeniowe w skali, prawdziwa
+obserwowalność) --- uporządkowane w strumienie prac, a nie płaską listę
+życzeń. Trzy samodzielne kawałki już wylądowały, nie wymagając żadnej
+infrastruktury zewnętrznej: ograniczanie tempa i ograniczony rozmiar strony na
+\texttt{POST /search}, podpięcie \texttt{ISearchIndex.\-HealthAsync()} pod
+sondę gotowości oraz zachowanie odroczenia i dead-letter w ingestii.
+
+% ============================================================================
+\section{Decyzje, odstępstwa i nie-cele}
+
+\subsection{Siedem decyzji, każda nazywająca to, co odrzuciła}
+
+Jeden plik na decyzję, numerowane kolejno, nigdy nie przenumerowywane ani
+przepisywane po przyjęciu.
+
+\begin{table}[htbp]
+\centering
+\caption{Rejestry decyzji architektonicznych (\texttt{docs/adr/}).}
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+\textbf{\#} & \textbf{Status} & \textbf{Tytuł} \\
+\midrule
+0001 & Przyjęta & Zapisywanie decyzji architektonicznych \\
+0002 & Przyjęta & Najpierw indeks zaślepkowy, domyślnie bez poświadczeń \\
+0003 & Przyjęta & Asercje czytają ślad strukturalny, nigdy tekst odpowiedzi \\
+0004 & Przyjęta & Osobne przypięcie modelu zanurzeń i modelu sędziego, nigdy cichy fallback \\
+0005 & Przyjęta & SDK Elasticsearcha i składu wektorów za szwem o pięciu metodach \\
+0006 & Przyjęta & Idempotencja zdarzeń na granicy konsumenta \\
+0007 & Przyjęta & Renderowanie tego dokumentu do PDF na żądanie, nigdy commitowane \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Odstępstwa i to, czego celowo nie przeniesiono}
+
+\texttt{docs/DEVIATIONS.md} to autorytatywna, datowana lista --- otwarta od
+pierwszego commita, nie pisana wstecznie. Poza ośmioma wierszami powyżej
+zapisuje też dwa rozszerzenia, które to repozytorium proponuje z powrotem
+standardom, za którymi idzie (wymóg testowania mutacyjnego dla zestawów
+ewaluacyjnych w ogóle oraz wzorzec komponowania fikstur dla scenariuszy), a
+także trzy wzorce, które niesie odwzorowywany przykład, a których to
+repozytorium celowo nie niesie: granicę zapisu z bramką potwierdzenia (nie ma
+tu ścieżki zapisu zatwierdzanej przez człowieka --- jedynym zapisem jest
+zautomatyzowany konsument), frontend pokazowy (to repozytorium jest o backendzie
+i inżynierii rankingu, nie o UI) oraz publiczne wdrożenie wyzwalane tagiem
+(dla tego proof of concept nie istnieje publiczne demo).
+
+\subsection{Nie-cele}
+
+Spisane po to, żeby rozrost zakresu miał o co się rozbić:
+
+\begin{itemize}[leftmargin=1.4em]
+  \item Brak UI. Wyłącznie REST API.
+  \item Brak personalizacji, brak uwierzytelniania poza jednym fikcyjnym
+        katalogiem właścicieli, brak katalogu wielodostępnego.
+  \item Brak korekty pisowni i przepisywania zapytań (D-8).
+  \item Brak forka standardów, za którymi idzie to repozytorium. Odstępstwa są
+        zapisywane, a nie obchodzone.
+  \item Nigdy żadnych prawdziwych danych ogłoszeniowych w żadnej fiksturze.
+        Każde ogłoszenie, właściciel i zapytanie są syntetyczne.
+  \item Żadna trasa HTTP nie zapisuje do indeksu. Jedyną ścieżką zapisu jest
+        \texttt{IngestionConsumer}, osiągalny wyłącznie ze zdarzenia ingestii.
+\end{itemize}
+
+% ============================================================================
+\section{Wartości inżynierskie}
+
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Specyfikacja jest kontraktem; to kod mierzy się względem niej,
+        a nie odwrotnie.}
+  \item \textbf{Twierdzenie bez pomiaru to marketing.} Każda liczba w tym
+        paperze prowadzi z powrotem do pliku, który produkuje sam zestaw
+        ewaluacyjny, albo do dokumentu wersjonowanego obok opisywanego kodu.
+  \item \textbf{Nieobecność warto dowodzić, nie tylko obecność.} 28 ze 128
+        asercji Warstwy 1 (22\%) stwierdza, że coś nigdy się nie wydarzyło.
+  \item \textbf{Zestaw testów, który nigdy nie padł, to zestaw, którego nikt
+        nie przetestował.} ,,Scenariusze ograniczeń przechodzą'' i
+        ,,scenariusze ograniczeń złapałyby naruszenie'' to różne twierdzenia, a
+        tylko jedno z nich da się dowieść, patrząc na zielone CI.
+  \item \textbf{Uczciwa luka, datowana i uzasadniona, jest decyzją.
+        Niewypowiedziana jest dryfem.} ,,Wiemy, że to nie jest gotowe na
+        produkcję'' to nie to samo zdanie, co spisanie, które konkretnie części
+        nie są, dlaczego i co by je zamknęło.
+\end{itemize}
+
+% ============================================================================
+\section{Status i relacja do standardów}
+
+Kompletne, przetestowane i uczciwie udokumentowane jako proof of concept:
+pełny pipeline, 128 asercji Warstwy 1 w 28 scenariuszach, czterowariantowy
+przebieg mutacyjny i CI uruchamiające to wszystko bez skonfigurowanych
+poświadczeń. Niekompletne --- i nieutrzymywane, że jest inaczej --- jako
+usługa produkcyjna.
+
+Plan dalszych prac żyje jako publiczne issue na GitHubie, a nie w tym
+dokumencie, żeby dało się go odhaczać na miejscu, zamiast pozwolić mu tu
+zwietrzeć: osiem uporządkowanych strumieni prac, od prawdziwego backendu
+Elasticsearch i prawdziwego modelu zanurzeń, przez pipeline wdrożeniowy, testy
+obciążeniowe w skali, po zamknięcie dwóch luk w rygorze ewaluacji, które
+wymagają drugiego, niezależnego autora, a nie większej ilości kodu.
+
+To repozytorium nie wyprowadza swojej architektury od nowa. Czyta
+\texttt{architecture-standards} i idzie za nim --- .NET Aspire z AppHostem
+jako korzeniem kompozycji, jeden cienki kernel \texttt{ServiceDefaults},
+OpenTelemetry na pierwszym miejscu --- oraz odwzorowuje, a nie wyprowadza od
+nowa, kształt stanowiska ewaluacyjnego, który \texttt{agent-eval-bench},
+referencyjna implementacja przewodnika ewaluacji AI tego samego autora, już
+zademonstrował na innym preparacie. \finding{Preparat się zmienił, z agenta
+używającego narzędzi na hybrydowy ranker; kształt przyrządu --- nie.} Tam,
+gdzie to repozytorium musi odejść od któregokolwiek z nich, odejście jest
+zapisane, datowane i uzasadnione, a nie sugerowane brakiem wzorca, który
+niesie odwzorowywany przykład.
+
+% ============================================================================
+\section{Podsumowanie}
+
+Twierdzenie, które stawia to repozytorium, jest wąskie i jest zmierzone:
+hybrydowy ranker respektuje swoje twarde ograniczenia na obu ścieżkach
+wyszukiwania, jest uczciwy co do atrybucji i co do degradacji i nie pozwala
+ogłoszeniu kupić sobie pozycji --- a każde z tych twierdzeń jest związane z
+nazwanym scenariuszem, który by padł, gdyby przestało być prawdziwe. Przebieg
+mutacyjny istnieje, bo zestaw, który nigdy nie padł, nie został przetestowany,
+a odstępstwa istnieją, bo różnica między proof of concept a usługą produkcyjną
+to lista konkretnych nieobecnych rzeczy, a nie zastrzeżenie w stopce.
+
+To, czego się nie twierdzi, jest równie jawne. Żadnego prawdziwego klastra,
+żadnego wytrenowanego zanurzenia, żadnego przebiegu sędziego z poświadczeniem,
+żadnego ruchu, żadnego wdrożenia. To nie są przeoczenia odkrywane przez
+czytelnika; to wiersze w datowanej tabeli, każdy z warunkiem, który by go
+zamknął.
+
+\begin{thebibliography}{9}
+\bibitem{spec} \texttt{docs/SPEC.md} --- kontrakt zachowań: dwanaście
+zachowań, siedem twardych ograniczeń, cztery rubryki i tabela zdarzeń śladu.
+Spisany przed pipeline'em.
+\bibitem{findings} \texttt{docs/FINDINGS.md} --- przeliczone liczby, wyniki
+przebiegu mutacyjnego i to, czego zestaw \emph{nie} złapał.
+\bibitem{deviations} \texttt{docs/DEVIATIONS.md} --- datowane odstępstwa,
+proponowane rozszerzenia i wzorce celowo nieprzeniesione.
+\bibitem{overview} \texttt{docs/OVERVIEW.md} --- źródło w Markdownie, które
+ten paper przedstawia.
+\bibitem{standards} \texttt{architecture-standards} ---
+\url{https://github.com/konradcinkusz/architecture-standards}
+\bibitem{aeb} \texttt{agent-eval-bench} ---
+\url{https://github.com/konradcinkusz/agent-eval-bench}
+\end{thebibliography}
+
+\end{document}

@@ -3,12 +3,15 @@
   "private": true,
   "description": "Tooling only — nothing here ships in any container.",
   "scripts": {
-    "lint": "npm run lint:md && npm run validate:scenarios && npm run validate:fixtures",
+    "lint": "npm run lint:md && npm run lint:diagrams && npm run validate:scenarios && npm run validate:fixtures",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\"",
+    "lint:diagrams": "node scripts/check-diagrams.mjs",
     "validate:scenarios": "node scripts/validate-scenarios.mjs",
-    "validate:fixtures": "node scripts/validate-fixtures.mjs"
+    "validate:fixtures": "node scripts/validate-fixtures.mjs",
+    "render:diagrams": "node scripts/render-diagrams.mjs"
   },
   "devDependencies": {
+    "@mermaid-js/mermaid-cli": "11.16.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "markdownlint-cli2": "^0.15.0",

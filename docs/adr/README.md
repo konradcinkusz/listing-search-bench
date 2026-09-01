@@ -4,7 +4,7 @@ One file per decision, numbered sequentially, never renumbered. A superseded ADR
 never deleted or rewritten — the record of what was believed at the time is the
 point. New ADRs are copied from [`0000-template.md`](0000-template.md).
 
-`0001` is the meta-decision to keep ADRs at all; `0002`–`0007` are the six named
+`0001` is the meta-decision to keep ADRs at all; `0002`–`0008` are the seven named
 decisions this repository's design note calls out specifically.
 
 | # | Title | Status | Date |
@@ -15,7 +15,8 @@ decisions this repository's design note calls out specifically.
 | [0004](0004-pin-the-embedding-and-the-judge-model-separately.md) | Pin the embedding and the judge model separately, never fall back silently | Accepted | 2026-08-17 |
 | [0005](0005-elasticsearch-and-vector-store-sdk-behind-one-method-seam.md) | The Elasticsearch and vector-store SDK lives behind a five-method seam | Accepted | 2026-08-17 |
 | [0006](0006-event-idempotency-at-the-consumer-boundary.md) | Event idempotency at the consumer boundary | Accepted | 2026-08-17 |
-| [0007](0007-render-the-overview-to-pdf-on-demand.md) | Render an overview document to PDF on demand, never committed | Accepted | 2026-08-17 |
+| [0007](0007-render-the-overview-to-pdf-on-demand.md) | Render an overview document to PDF on demand, never committed | Superseded by 0008 | 2026-08-17 |
+| [0008](0008-hand-authored-latex-editions-in-english-and-polish.md) | Hand-author the overview as LaTeX, in English and Polish | Accepted | 2026-09-01 |
 
 ## What belongs here versus `DEVIATIONS.md` versus nowhere
 

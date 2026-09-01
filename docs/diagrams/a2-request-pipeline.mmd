@@ -1,0 +1,12 @@
+flowchart LR
+    q["POST /search"] --> qp["QueryParserStage"]
+    qp --> fr["FilterResolverStage<br/>AllowedStatuses = Active, always"]
+    fr --> lex["LexicalRetrieverStage"]
+    fr --> vec["VectorRetrieverStage"]
+    lex --> hr["HybridRankerStage<br/>manipulation reported, never scored"]
+    vec --> hr
+    hr --> ra["ResponseAssemblerStage<br/>no internal id, no raw score, ever"]
+    ra --> resp["SearchResponse"]
+
+    classDef star fill:#fdf0d5,stroke:#c8860d,stroke-width:2px,color:#3d2b00
+    class hr star
