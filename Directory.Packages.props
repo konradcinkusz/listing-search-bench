@@ -12,7 +12,7 @@
 
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <AspireVersion>13.4.6</AspireVersion>
+    <AspireVersion>17.0.0</AspireVersion>
     <OpenTelemetryVersion>1.17.0</OpenTelemetryVersion>
     <ExtensionsVersion>10.9.0</ExtensionsVersion>
   </PropertyGroup>
